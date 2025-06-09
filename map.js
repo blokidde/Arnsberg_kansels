@@ -12,11 +12,6 @@ let selectedZone = null;
 let editHandles = [];
 let zoneId = 1;
 
-const addBtn = document.getElementById('add-zone-btn');
-const options = document.getElementById('zone-options');
-const confirmBtn = document.getElementById('confirm-zone');
-const deleteBtn = document.getElementById('delete-zone');
-
 const map = L.map('map', {
     zoomControl: true,
     doubleClickZoom: true,
@@ -141,33 +136,6 @@ map.on('locationfound', function(e) {
 
 loadMarkers();
 
-addBtn.addEventListener('click', () => {
-    options.classList.toggle('hidden');
-});
-
-options.addEventListener('click', e => {
-    if (e.target.tagName !== 'BUTTON') return;
-    drawing = true;
-    drawingType = e.target.dataset.type;
-    options.classList.add('hidden');
-    clearDrawing();
-});
-
-confirmBtn.addEventListener('click', () => {
-    if (drawingPoints.length < 3) return;
-    createZone(drawingType, drawingPoints);
-    clearDrawing();
-    drawing = false;
-    confirmBtn.classList.add('hidden');
-});
-
-deleteBtn.addEventListener('click', () => {
-    if (!selectedZone) return;
-    map.removeLayer(selectedZone.polygon);
-    zones.splice(zones.indexOf(selectedZone), 1);
-    deselectZone();
-});
-
 function addPoint(latlng) {
     const m = L.circleMarker(latlng, { radius: 4 }).addTo(map);
     tempMarkers.push(m);
@@ -225,3 +193,54 @@ function deselectZone() {
     deleteBtn.classList.add('hidden');
     selectedZone = null;
 }
+
+document.getElementById("toggle-edit").addEventListener("click", () => {
+    document.getElementById("edit-options").classList.toggle("hidden");
+    document.getElementById("legend-box").classList.add("hidden");
+});
+
+document.getElementById("toggle-legend").addEventListener("click", () => {
+    document.getElementById("legend-box").classList.toggle("hidden");
+    document.getElementById("edit-options").classList.add("hidden");
+});
+
+document.getElementById("add-zone").addEventListener("click", () => {
+    document.getElementById("zone-types").classList.toggle("hidden");
+});
+
+document.getElementById("zone-types").addEventListener("click", e => {
+    if (e.target.tagName !== 'BUTTON') return;
+    drawing = true;
+    drawingType = e.target.dataset.type;
+    document.getElementById("zone-types").classList.add("hidden");
+    clearDrawing();
+});
+
+document.getElementById("add-hut").addEventListener("click", () => {
+    map.once('click', function(e) {
+        const name = prompt('Naam van de hut?');
+        if (!name) return;
+        const number = prompt('Nummer?');
+        if (number === null) return;
+        const desc = prompt('Korte beschrijving?') || '';
+
+        const marker = L.marker(e.latlng).addTo(map)
+            .bindTooltip(name + ' ' + number, { permanent: true, direction: 'top' });
+        marker.description = desc;
+        marker.on('click', function(ev) {
+            L.popup().setLatLng(ev.latlng)
+                .setContent('<strong>' + name + ' ' + number + '</strong><br>' + desc)
+                .openOn(map);
+        });
+        markers.push({ name, number, desc, latlng: e.latlng });
+        saveMarkers();
+    });
+});
+
+document.getElementById("delete-zone").addEventListener("click", () => {
+    if (!selectedZone) return;
+    map.removeLayer(selectedZone.polygon);
+    zones.splice(zones.indexOf(selectedZone), 1);
+    deselectZone();
+});
+

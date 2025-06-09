@@ -10,15 +10,25 @@
 </head>
 <body>
     <div id="map"></div>
-    <div id="control-panel">
-        <button id="add-zone-btn">Voeg zone toe</button>
-        <div id="zone-options" class="hidden">
-            <button data-type="bos">Bos</button>
-            <button data-type="wildakker">Wildakker</button>
-            <button data-type="voederplek">Voederplek</button>
+    <div id="floating-menu">
+    <button id="toggle-edit">Edit</button>
+    <div id="edit-options" class="hidden">
+        <button id="add-hut">Voeg hut toe</button>
+        <button id="add-zone">Voeg zone toe</button>
+        <div id="zone-types" class="hidden">
+        <button data-type="bos">Bos</button>
+        <button data-type="wildakker">Wildakker</button>
+        <button data-type="voederplek">Voederplek</button>
         </div>
-        <button id="confirm-zone" class="hidden">Bevestigen</button>
-        <button id="delete-zone" class="hidden">Verwijderen</button>
+        <button id="delete-zone" class="hidden">Verwijder zone</button>
+    </div>
+    <button id="toggle-legend">📖 Legenda</button>
+    <div id="legend-box" class="hidden">
+        <div class="legend-item"><i style="background:sienna"></i> Voederplek</div>
+        <div class="legend-item"><i style="background:yellow"></i> Wildakker</div>
+        <div class="legend-item"><i style="background:green"></i> Bos</div>
+        <div class="legend-item"><i style="background:red"></i> Jachtgrens</div>
+    </div>
     </div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="map.js"></script>
