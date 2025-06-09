@@ -1,6 +1,7 @@
 const startCoords = [51.395, 8.06];
 const startZoom = 13;
 const markers = [];
+
 const zones = [];
 let drawing = false;
 let drawingType = null;
@@ -56,6 +57,7 @@ function loadMarkers() {
                 .setContent('<strong>' + m.name + ' ' + m.number + '</strong><br>' + m.desc)
                 .openOn(map);
         });
+
         markers.push(m);
     });
 }
@@ -66,6 +68,7 @@ map.on('click', function(e) {
         return;
     }
     if (selectedZone) deselectZone();
+
 
     const name = prompt('Naam van de hut?');
     if (!name) return;
@@ -81,6 +84,7 @@ map.on('click', function(e) {
             .setContent('<strong>' + name + ' ' + number + '</strong><br>' + desc)
             .openOn(map);
     });
+=======
     markers.push({ name, number, desc, latlng: e.latlng });
     saveMarkers();
 });
@@ -93,6 +97,7 @@ function zoneStyle(obj) {
             return { color: 'sienna', fillColor: 'sienna', fillOpacity: 0.5 };
         case 'wildakker':
             return { color: 'yellow', fillColor: 'yellow', fillOpacity: 0.5 };
+
         case 'bos':
             return { color: 'green', fillColor: 'green', fillOpacity: 0.5 };
         case 'grens':
@@ -107,6 +112,7 @@ fetch('gebieden.geojson')
             const coords = f.geometry.coordinates[0].map(c => [c[1], c[0]]);
             createZone(f.properties.type, coords);
         });
+
     })
     .catch(err => console.error('GeoJSON laden mislukt', err));
 
@@ -117,6 +123,7 @@ legend.onAdd = function() {
     div.innerHTML =
         '<i style="background:sienna"></i>Voederplek<br>' +
         '<i style="background:yellow"></i>Wildakker<br>' +
+
         '<i style="background:green"></i>Bos<br>' +
         '<i style="background:red"></i>Gebiedgrens';
     return div;
