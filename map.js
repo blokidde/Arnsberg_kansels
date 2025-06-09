@@ -23,8 +23,8 @@ const map = L.map('map', {
     scrollWheelZoom: true,
     boxZoom: true,
     touchZoom: true,
-    minZoom: 10,
-    maxZoom: 18
+    minZoom: 13,
+    maxZoom: 17
 }).setView(startCoords, startZoom);
 
 L.tileLayer(
@@ -138,54 +138,6 @@ map.on('locationfound', function(e) {
 });
 
 loadMarkers();
-
-// Example polygons for different zone types
-const sampleZones = [
-    {
-        type: 'voederplek',
-        label: 'Voederzone 1',
-        latlngs: [
-            [51.4370, 7.8770],
-            [51.4374, 7.8780],
-            [51.4368, 7.8784]
-        ]
-    },
-    {
-        type: 'wildakker',
-        label: 'Wildakker 1',
-        latlngs: [
-            [51.4380, 7.8805],
-            [51.4385, 7.8815],
-            [51.4380, 7.8825],
-            [51.4375, 7.8815]
-        ]
-    },
-    {
-        type: 'bos',
-        label: 'Bos 1',
-        latlngs: [
-            [51.4355, 7.8750],
-            [51.4350, 7.8756],
-            [51.4358, 7.8762]
-        ]
-    },
-    {
-        type: 'grens',
-        label: 'Jachtgebied',
-        latlngs: [
-            [51.432, 7.870],
-            [51.432, 7.886],
-            [51.442, 7.886],
-            [51.442, 7.870]
-        ]
-    }
-];
-
-sampleZones.forEach(z => {
-    const zone = createZone(z.type, z.latlngs);
-    zone.polygon.bindTooltip(z.label, { permanent: true });
-});
-
 
 addBtn.addEventListener('click', () => {
     options.classList.toggle('hidden');
