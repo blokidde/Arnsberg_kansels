@@ -262,33 +262,6 @@ document.getElementById("zone-types").addEventListener("click", e => {
     clearDrawing();
 });
 
-document.getElementById("add-hut").addEventListener("click", () => {
-    map.once('click', function(e) {
-        const name = prompt('Naam van de hut?');
-        if (!name) return;
-        const number = prompt('Nummer?');
-        if (number === null) return;
-        const desc = prompt('Korte beschrijving?') || '';
-
-        const marker = L.marker(e.latlng).addTo(map)
-            .bindTooltip(name + ' ' + number, { permanent: true, direction: 'top' });
-        marker.description = desc;
-        marker.on('click', function(ev) {
-            L.popup().setLatLng(ev.latlng)
-                .setContent('<strong>' + name + ' ' + number + '</strong><br>' + desc)
-                .openOn(map);
-        });
-        markers.push({ name, number, desc, latlng: e.latlng });
-        saveMarker({
-            name,
-            number,
-            desc,
-            lat: e.latlng.lat,
-            lng: e.latlng.lng
-        });
-    });
-});
-
 document.getElementById("delete-zone").addEventListener("click", () => {
     if (!selectedZone) return;
     map.removeLayer(selectedZone.polygon);
