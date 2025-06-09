@@ -84,7 +84,6 @@ map.on('click', function(e) {
             .setContent('<strong>' + name + ' ' + number + '</strong><br>' + desc)
             .openOn(map);
     });
-=======
     markers.push({ name, number, desc, latlng: e.latlng });
     saveMarkers();
 });
