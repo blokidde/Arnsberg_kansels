@@ -28,11 +28,10 @@ const map = L.map('map', {
 }).setView(startCoords, startZoom);
 
 L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    {
-        attribution:
-            '&copy; <a href="https://carto.com/attributions">CARTO</a>'
-    }
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  {
+    attribution: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, IGN, and the GIS User Community'
+  }
 ).addTo(map);
 
 // Limit map panning to a fixed boundary
