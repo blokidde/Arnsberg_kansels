@@ -37,9 +37,8 @@ L.tileLayer(
 
 // Limit map panning to a fixed boundary
 const bounds = L.latLngBounds([
-    [51.432, 7.870],
-    [51.442, 7.886]
-
+    [51.432, 7.873],
+    [51.442, 7.883]
 ]);
 map.setMaxBounds(bounds);
 map.on('drag', function() {
