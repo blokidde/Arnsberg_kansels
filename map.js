@@ -2,6 +2,21 @@ const startCoords = [51.395, 8.06];
 const startZoom = 13;
 const markers = [];
 
+const zones = [];
+let drawing = false;
+let drawingType = null;
+let drawingPoints = [];
+let tempMarkers = [];
+let tempLine = null;
+let selectedZone = null;
+let editHandles = [];
+let zoneId = 1;
+
+const addBtn = document.getElementById('add-zone-btn');
+const options = document.getElementById('zone-options');
+const confirmBtn = document.getElementById('confirm-zone');
+const deleteBtn = document.getElementById('delete-zone');
+
 const map = L.map('map', {
     zoomControl: false,
     doubleClickZoom: false,
@@ -37,11 +52,24 @@ function loadMarkers() {
         const marker = L.marker(m.latlng).addTo(map)
             .bindTooltip(m.name + ' ' + m.number, { permanent: true, direction: 'top' });
         marker.description = m.desc;
+        marker.on('click', function(ev) {
+            L.popup().setLatLng(ev.latlng)
+                .setContent('<strong>' + m.name + ' ' + m.number + '</strong><br>' + m.desc)
+                .openOn(map);
+        });
+
         markers.push(m);
     });
 }
 
 map.on('click', function(e) {
+    if (drawing) {
+        addPoint(e.latlng);
+        return;
+    }
+    if (selectedZone) deselectZone();
+
+
     const name = prompt('Naam van de hut?');
     if (!name) return;
     const number = prompt('Nummer?');
@@ -51,16 +79,25 @@ map.on('click', function(e) {
     const marker = L.marker(e.latlng).addTo(map)
         .bindTooltip(name + ' ' + number, { permanent: true, direction: 'top' });
     marker.description = desc;
+    marker.on('click', function(ev) {
+        L.popup().setLatLng(ev.latlng)
+            .setContent('<strong>' + name + ' ' + number + '</strong><br>' + desc)
+            .openOn(map);
+    });
+=======
     markers.push({ name, number, desc, latlng: e.latlng });
     saveMarkers();
 });
 
-function zoneStyle(feature) {
-    switch (feature.properties.type) {
+function zoneStyle(obj) {
+    const type = obj.type || (obj.properties && obj.properties.type);
+    switch (type) {
+        case 'voederplek':
         case 'voederzone':
-            return { color: 'orange', fillColor: 'orange', fillOpacity: 0.5 };
+            return { color: 'sienna', fillColor: 'sienna', fillOpacity: 0.5 };
         case 'wildakker':
-            return { color: 'purple', fillColor: 'purple', fillOpacity: 0.5 };
+            return { color: 'yellow', fillColor: 'yellow', fillOpacity: 0.5 };
+
         case 'bos':
             return { color: 'green', fillColor: 'green', fillOpacity: 0.5 };
         case 'grens':
@@ -71,12 +108,11 @@ function zoneStyle(feature) {
 fetch('gebieden.geojson')
     .then(resp => resp.json())
     .then(data => {
-        L.geoJSON(data, {
-            style: zoneStyle,
-            onEachFeature: function(feature, layer) {
-                layer.bindTooltip(feature.properties.name || feature.properties.type);
-            }
-        }).addTo(map);
+        data.features.forEach(f => {
+            const coords = f.geometry.coordinates[0].map(c => [c[1], c[0]]);
+            createZone(f.properties.type, coords);
+        });
+
     })
     .catch(err => console.error('GeoJSON laden mislukt', err));
 
@@ -85,8 +121,9 @@ const legend = L.control({ position: 'bottomright' });
 legend.onAdd = function() {
     const div = L.DomUtil.create('div', 'legend');
     div.innerHTML =
-        '<i style="background:orange"></i>Voederzone<br>' +
-        '<i style="background:purple"></i>Wildakker<br>' +
+        '<i style="background:sienna"></i>Voederplek<br>' +
+        '<i style="background:yellow"></i>Wildakker<br>' +
+
         '<i style="background:green"></i>Bos<br>' +
         '<i style="background:red"></i>Gebiedgrens';
     return div;
@@ -114,3 +151,88 @@ map.on('locationfound', function(e) {
 });
 
 loadMarkers();
+
+addBtn.addEventListener('click', () => {
+    options.classList.toggle('hidden');
+});
+
+options.addEventListener('click', e => {
+    if (e.target.tagName !== 'BUTTON') return;
+    drawing = true;
+    drawingType = e.target.dataset.type;
+    options.classList.add('hidden');
+    clearDrawing();
+});
+
+confirmBtn.addEventListener('click', () => {
+    if (drawingPoints.length < 3) return;
+    createZone(drawingType, drawingPoints);
+    clearDrawing();
+    drawing = false;
+    confirmBtn.classList.add('hidden');
+});
+
+deleteBtn.addEventListener('click', () => {
+    if (!selectedZone) return;
+    map.removeLayer(selectedZone.polygon);
+    zones.splice(zones.indexOf(selectedZone), 1);
+    deselectZone();
+});
+
+function addPoint(latlng) {
+    const m = L.circleMarker(latlng, { radius: 4 }).addTo(map);
+    tempMarkers.push(m);
+    drawingPoints.push(latlng);
+    if (!tempLine) {
+        tempLine = L.polyline(drawingPoints, { dashArray: '4,4' }).addTo(map);
+    } else {
+        tempLine.setLatLngs(drawingPoints);
+    }
+    if (drawingPoints.length >= 3) confirmBtn.classList.remove('hidden');
+}
+
+function clearDrawing() {
+    tempMarkers.forEach(m => map.removeLayer(m));
+    tempMarkers = [];
+    if (tempLine) { map.removeLayer(tempLine); tempLine = null; }
+    drawingPoints = [];
+}
+
+function createZone(type, latlngs) {
+    const poly = L.polygon(latlngs, zoneStyle({type})).addTo(map);
+    const zone = { id: zoneId++, type, polygon: poly, latlngs: latlngs.slice() };
+    poly.on('click', function(e) {
+        L.DomEvent.stopPropagation(e);
+        selectZone(zone);
+        poly.openPopup(e.latlng);
+    });
+    poly.bindPopup('Type: ' + type + '<br>ID: ' + zone.id);
+    zones.push(zone);
+    return zone;
+}
+
+function selectZone(zone) {
+    deselectZone();
+    selectedZone = zone;
+    deleteBtn.classList.remove('hidden');
+    zone.latlngs = zone.polygon.getLatLngs()[0];
+    zone.latlngs.forEach((latlng, idx) => {
+        const handle = L.marker(latlng, {
+            draggable: true,
+            icon: L.divIcon({ className: 'vertex-handle' })
+        }).addTo(map);
+        handle.on('drag', ev => {
+            zone.latlngs[idx] = ev.target.getLatLng();
+            zone.polygon.setLatLngs(zone.latlngs);
+        });
+        editHandles.push(handle);
+    });
+}
+
+function deselectZone() {
+    if (!selectedZone) return;
+    editHandles.forEach(h => map.removeLayer(h));
+    editHandles = [];
+    deleteBtn.classList.add('hidden');
+    selectedZone = null;
+}
