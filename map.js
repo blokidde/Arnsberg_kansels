@@ -18,13 +18,13 @@ const confirmBtn = document.getElementById('confirm-zone');
 const deleteBtn = document.getElementById('delete-zone');
 
 const map = L.map('map', {
-    zoomControl: false,
-    doubleClickZoom: false,
-    scrollWheelZoom: false,
-    boxZoom: false,
-    touchZoom: false,
-    minZoom: startZoom,
-    maxZoom: startZoom
+    zoomControl: true,
+    doubleClickZoom: true,
+    scrollWheelZoom: true,
+    boxZoom: true,
+    touchZoom: true,
+    minZoom: 10,
+    maxZoom: 18
 }).setView(startCoords, startZoom);
 
 L.tileLayer(
