@@ -93,7 +93,7 @@ async function loadMarkers() {
 }
 
 
-map.on('click', function(e) {
+map.on('click', async function(e) {
     if (drawing) {
         addPoint(e.latlng);
         return;
@@ -117,9 +117,20 @@ map.on('click', function(e) {
             .setContent('<strong>' + name + ' ' + number + '</strong><br>' + desc)
             .openOn(map);
     });
-    markers.push({ name, number, desc, latlng: e.latlng });
-    saveMarker({ name, number, desc, latlng: e.latlng });
+
+    const markerData = {
+        name,
+        number,
+        desc,
+        lat: e.latlng.lat,
+        lng: e.latlng.lng
+    };
+
+    markers.push(markerData);
+    const res = await saveMarker(markerData);
+    markerData.id = (await res.json()).id;
 });
+
 
 
 function zoneStyle(obj) {
@@ -268,7 +279,13 @@ document.getElementById("add-hut").addEventListener("click", () => {
                 .openOn(map);
         });
         markers.push({ name, number, desc, latlng: e.latlng });
-        saveMarker({ name, number, desc, latlng: e.latlng });
+        saveMarker({
+            name,
+            number,
+            desc,
+            lat: e.latlng.lat,
+            lng: e.latlng.lng
+        });
     });
 });
 
