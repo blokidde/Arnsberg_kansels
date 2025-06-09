@@ -1,4 +1,4 @@
-const startCoords = [51.4377737, 7.8800099];
+const startCoords = [51.4372855, 7.8781002];
 const startZoom = 13;
 const markers = [];
 
