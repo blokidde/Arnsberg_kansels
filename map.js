@@ -27,12 +27,15 @@ const map = L.map('map', {
     maxZoom: 17
 }).setView(startCoords, startZoom);
 
-L.tileLayer(
-  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  {
-    attribution: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, IGN, and the GIS User Community'
-  }
-).addTo(map);
+const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+const light = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png');
+
+L.control.layers({
+  "Licht": light,
+  "Satelliet": satellite
+}).addTo(map);
+
+satellite.addTo(map);
 
 // Limit map panning to a fixed boundary
 const bounds = L.latLngBounds([
