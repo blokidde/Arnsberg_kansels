@@ -27,14 +27,19 @@ const map = L.map('map', {
     maxZoom: startZoom
 }).setView(startCoords, startZoom);
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>'
-}).addTo(map);
+L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    {
+        attribution:
+            '&copy; <a href="https://carto.com/attributions">CARTO</a>'
+    }
+).addTo(map);
 
 // Limit map panning to a fixed boundary
 const bounds = L.latLngBounds([
-    [51.390, 8.050],
-    [51.402, 8.075]
+    [51.432, 7.870],
+    [51.442, 7.886]
+
 ]);
 map.setMaxBounds(bounds);
 map.on('drag', function() {
@@ -57,7 +62,6 @@ function loadMarkers() {
                 .setContent('<strong>' + m.name + ' ' + m.number + '</strong><br>' + m.desc)
                 .openOn(map);
         });
-
         markers.push(m);
     });
 }
@@ -68,8 +72,6 @@ map.on('click', function(e) {
         return;
     }
     if (selectedZone) deselectZone();
-
-
     const name = prompt('Naam van de hut?');
     if (!name) return;
     const number = prompt('Nummer?');
@@ -96,7 +98,6 @@ function zoneStyle(obj) {
             return { color: 'sienna', fillColor: 'sienna', fillOpacity: 0.5 };
         case 'wildakker':
             return { color: 'yellow', fillColor: 'yellow', fillOpacity: 0.5 };
-
         case 'bos':
             return { color: 'green', fillColor: 'green', fillOpacity: 0.5 };
         case 'grens':
@@ -104,16 +105,6 @@ function zoneStyle(obj) {
     }
 }
 
-fetch('gebieden.geojson')
-    .then(resp => resp.json())
-    .then(data => {
-        data.features.forEach(f => {
-            const coords = f.geometry.coordinates[0].map(c => [c[1], c[0]]);
-            createZone(f.properties.type, coords);
-        });
-
-    })
-    .catch(err => console.error('GeoJSON laden mislukt', err));
 
 // Legend
 const legend = L.control({ position: 'bottomright' });
@@ -122,9 +113,7 @@ legend.onAdd = function() {
     div.innerHTML =
         '<i style="background:sienna"></i>Voederplek<br>' +
         '<i style="background:yellow"></i>Wildakker<br>' +
-
-        '<i style="background:green"></i>Bos<br>' +
-        '<i style="background:red"></i>Gebiedgrens';
+        '<i style="background:green"></i>Bos';
     return div;
 };
 legend.addTo(map);
@@ -150,6 +139,54 @@ map.on('locationfound', function(e) {
 });
 
 loadMarkers();
+
+// Example polygons for different zone types
+const sampleZones = [
+    {
+        type: 'voederplek',
+        label: 'Voederzone 1',
+        latlngs: [
+            [51.4370, 7.8770],
+            [51.4374, 7.8780],
+            [51.4368, 7.8784]
+        ]
+    },
+    {
+        type: 'wildakker',
+        label: 'Wildakker 1',
+        latlngs: [
+            [51.4380, 7.8805],
+            [51.4385, 7.8815],
+            [51.4380, 7.8825],
+            [51.4375, 7.8815]
+        ]
+    },
+    {
+        type: 'bos',
+        label: 'Bos 1',
+        latlngs: [
+            [51.4355, 7.8750],
+            [51.4350, 7.8756],
+            [51.4358, 7.8762]
+        ]
+    },
+    {
+        type: 'grens',
+        label: 'Jachtgebied',
+        latlngs: [
+            [51.432, 7.870],
+            [51.432, 7.886],
+            [51.442, 7.886],
+            [51.442, 7.870]
+        ]
+    }
+];
+
+sampleZones.forEach(z => {
+    const zone = createZone(z.type, z.latlngs);
+    zone.polygon.bindTooltip(z.label, { permanent: true });
+});
+
 
 addBtn.addEventListener('click', () => {
     options.classList.toggle('hidden');
