@@ -54,6 +54,7 @@ async function saveMarker(marker) {
 }
 
 async function loadMarkers() {
+    console.log("GET hutjes from:", `${API_URL}/hutjes`);
     const res = await fetch(`${API_URL}/hutjes`);
     const data = await res.json();
     data.forEach(m => {
@@ -69,7 +70,7 @@ async function loadMarkers() {
                 m.name = newName;
                 m.desc = newDesc;
                 marker.bindTooltip(newName + ' ' + m.number, { permanent: true, direction: 'top' }).openTooltip();
-
+                
                 await fetch(`${API_URL}/hutjes/${m.id}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
