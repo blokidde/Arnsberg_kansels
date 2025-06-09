@@ -101,19 +101,6 @@ function zoneStyle(obj) {
     }
 }
 
-
-// Legend
-const legend = L.control({ position: 'bottomright' });
-legend.onAdd = function() {
-    const div = L.DomUtil.create('div', 'legend');
-    div.innerHTML =
-        '<i style="background:sienna"></i>Voederplek<br>' +
-        '<i style="background:yellow"></i>Wildakker<br>' +
-        '<i style="background:green"></i>Bos';
-    return div;
-};
-legend.addTo(map);
-
 // Locate button
 const locate = L.control({ position: 'topleft' });
 locate.onAdd = function() {
