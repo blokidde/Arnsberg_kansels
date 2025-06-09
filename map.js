@@ -1,3 +1,5 @@
+const API_URL = "https://461a-2001-1c08-883-4400-f0c3-e205-3254-d3c3.ngrok-free.app" 
+
 const startCoords = [51.4372855, 7.8781002];
 const startZoom = 13;
 const markers = [];
@@ -11,6 +13,7 @@ let tempLine = null;
 let selectedZone = null;
 let editHandles = [];
 let zoneId = 1;
+let hutMode = null;
 
 const map = L.map('map', {
     zoomControl: true,
@@ -42,32 +45,64 @@ map.on('drag', function() {
     map.panInsideBounds(bounds, { animate: false });
 });
 
-function saveMarkers() {
-    localStorage.setItem('hutjes', JSON.stringify(markers));
+async function saveMarker(marker) {
+    await fetch(`${API_URL}/hutjes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(marker)
+    });
 }
 
-function loadMarkers() {
-    const data = localStorage.getItem('hutjes');
-    if (!data) return;
-    JSON.parse(data).forEach(m => {
-        const marker = L.marker(m.latlng).addTo(map)
+async function loadMarkers() {
+    const res = await fetch(`${API_URL}/hutjes`);
+    const data = await res.json();
+    data.forEach(m => {
+        const marker = L.marker({ lat: m.lat, lng: m.lng }).addTo(map)
             .bindTooltip(m.name + ' ' + m.number, { permanent: true, direction: 'top' });
         marker.description = m.desc;
-        marker.on('click', function(ev) {
-            L.popup().setLatLng(ev.latlng)
-                .setContent('<strong>' + m.name + ' ' + m.number + '</strong><br>' + m.desc)
-                .openOn(map);
+        marker.on('click', async function(ev) {
+            if (hutMode === "edit") {
+                const newName = prompt('Nieuwe naam:', m.name);
+                const newDesc = prompt('Nieuwe beschrijving:', m.desc);
+                if (!newName) return;
+
+                m.name = newName;
+                m.desc = newDesc;
+                marker.bindTooltip(newName + ' ' + m.number, { permanent: true, direction: 'top' }).openTooltip();
+
+                await fetch(`${API_URL}/hutjes/${m.id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(m)
+                });
+
+            } else if (hutMode === "delete") {
+                if (!confirm(`Verwijder ${m.name} ${m.number}?`)) return;
+                map.removeLayer(marker);
+                await fetch(`${API_URL}/hutjes/${m.id}`, {
+                    method: "DELETE"
+                });
+            } else {
+                L.popup().setLatLng(ev.latlng)
+                    .setContent('<strong>' + m.name + ' ' + m.number + '</strong><br>' + m.desc)
+                    .openOn(map);
+            }
         });
         markers.push(m);
     });
 }
+
 
 map.on('click', function(e) {
     if (drawing) {
         addPoint(e.latlng);
         return;
     }
+
     if (selectedZone) deselectZone();
+
+    if (hutMode !== "add") return;
+
     const name = prompt('Naam van de hut?');
     if (!name) return;
     const number = prompt('Nummer?');
@@ -83,8 +118,9 @@ map.on('click', function(e) {
             .openOn(map);
     });
     markers.push({ name, number, desc, latlng: e.latlng });
-    saveMarkers();
+    saveMarker({ name, number, desc, latlng: e.latlng });
 });
+
 
 function zoneStyle(obj) {
     const type = obj.type || (obj.properties && obj.properties.type);
@@ -195,6 +231,18 @@ document.getElementById("add-zone").addEventListener("click", () => {
     document.getElementById("zone-types").classList.toggle("hidden");
 });
 
+document.getElementById("mode-add").addEventListener("click", function () {
+    hutMode = "add";
+});
+
+document.getElementById("mode-edit").addEventListener("click", function () {
+    hutMode = "edit";
+});
+
+document.getElementById("mode-delete").addEventListener("click", function () {
+    hutMode = "delete";
+});
+
 document.getElementById("zone-types").addEventListener("click", e => {
     if (e.target.tagName !== 'BUTTON') return;
     drawing = true;
@@ -220,7 +268,7 @@ document.getElementById("add-hut").addEventListener("click", () => {
                 .openOn(map);
         });
         markers.push({ name, number, desc, latlng: e.latlng });
-        saveMarkers();
+        saveMarker({ name, number, desc, latlng: e.latlng });
     });
 });
 
