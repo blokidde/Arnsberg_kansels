@@ -1,6 +1,7 @@
-const startCoords = [51.4369412, 7.8780764];
+const startCoords = [51.4377737, 7.8800099];
 const startZoom = 13;
 const markers = [];
+
 const zones = [];
 let drawing = false;
 let drawingType = null;
@@ -38,6 +39,7 @@ L.tileLayer(
 const bounds = L.latLngBounds([
     [51.432, 7.870],
     [51.442, 7.886]
+
 ]);
 map.setMaxBounds(bounds);
 map.on('drag', function() {
@@ -70,7 +72,6 @@ map.on('click', function(e) {
         return;
     }
     if (selectedZone) deselectZone();
-
     const name = prompt('Naam van de hut?');
     if (!name) return;
     const number = prompt('Nummer?');
@@ -185,6 +186,7 @@ sampleZones.forEach(z => {
     const zone = createZone(z.type, z.latlngs);
     zone.polygon.bindTooltip(z.label, { permanent: true });
 });
+
 
 addBtn.addEventListener('click', () => {
     options.classList.toggle('hidden');

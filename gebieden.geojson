@@ -1,0 +1,37 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {"name": "Voederzone", "type": "voederzone"},
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[8.055,51.398],[8.058,51.398],[8.058,51.396],[8.055,51.396],[8.055,51.398]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {"name": "Wildakker", "type": "wildakker"},
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[8.060,51.401],[8.065,51.401],[8.065,51.399],[8.060,51.399],[8.060,51.401]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {"name": "Bos", "type": "bos"},
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[8.060,51.395],[8.070,51.395],[8.070,51.392],[8.060,51.392],[8.060,51.395]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {"name": "Jachtgebied", "type": "grens"},
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[8.050,51.402],[8.075,51.402],[8.075,51.390],[8.050,51.390],[8.050,51.402]]]
+      }
+    }
+  ]
+}
