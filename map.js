@@ -8,6 +8,8 @@ const CONFIG = {
     MAX_ZOOM: 17
 };
 
+const NGROK_SKIP_HEADER = { 'ngrok-skip-browser-warning': 'skip-browser-warning' };
+
 // State management
 const state = {
     markers: [],
@@ -89,7 +91,7 @@ const api = {
         console.log("Testing API connection...");
 
         try {
-            const response = await fetch(`${CONFIG.API_URL}/test`);
+            const response = await fetch(`${CONFIG.API_URL}/test`, { headers: { ...NGROK_SKIP_HEADER } });
             console.log("Response status:", response.status);
 
             if (!response.ok) {
@@ -132,7 +134,7 @@ const api = {
         console.log("API URL:", `${CONFIG.API_URL}/hutjes`);
 
         try {
-            const response = await fetch(`${CONFIG.API_URL}/hutjes`);
+            const response = await fetch(`${CONFIG.API_URL}/hutjes`, { headers: { ...NGROK_SKIP_HEADER } });
             console.log("Response status:", response.status);
             console.log("Response headers:", response.headers);
 
