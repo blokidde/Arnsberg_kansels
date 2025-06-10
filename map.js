@@ -85,6 +85,18 @@ function setupMapControls(map) {
 
 // API functions
 const api = {
+    async testConnection() {
+        try {
+            console.log("Testing API connection...");
+            const response = await fetch(`${CONFIG.API_URL}/`);
+            const data = await response.json();
+            console.log("API root response:", data);
+            return true;
+        } catch (error) {
+            console.error('API connection test failed:', error);
+            return false;
+        }
+    },
     async saveMarker(markerData) {
         try {
             const response = await fetch(`${CONFIG.API_URL}/hutjes`, {
@@ -102,8 +114,28 @@ const api = {
     async loadMarkers() {
         try {
             console.log("Loading markers from API...");
+            console.log("API URL:", `${CONFIG.API_URL}/hutjes`);
+            
             const response = await fetch(`${CONFIG.API_URL}/hutjes`);
-            const data = await response.json();
+            console.log("Response status:", response.status);
+            console.log("Response headers:", response.headers);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const responseText = await response.text();
+            console.log("Raw response:", responseText);
+            
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                console.error('Response was:', responseText);
+                throw new Error('Invalid JSON response from server');
+            }
+            
             console.log("API data received:", data);
             return data;
         } catch (error) {
@@ -441,6 +473,12 @@ function setupEventHandlers(map) {
 // Main initialization
 async function init() {
     console.log("Initializing map application...");
+    
+    // Test API connection first
+    const apiConnected = await api.testConnection();
+    if (!apiConnected) {
+        console.error("API connection failed - markers will not load");
+    }
     
     const map = initializeMap();
     setupEventHandlers(map);
