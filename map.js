@@ -4,10 +4,10 @@ const CONFIG = {
     START_COORDS: [51.4372855, 7.8781002],
     START_ZOOM: 13,
     MAP_BOUNDS: [
-        [51.4436344703222, 7.85127639770508], // linksboven marker
-        [51.4434206040365, 7.89839744567871], // rechtsboven marker
-        [51.4215025017151, 7.89968490600586], // rechtsonder marker
-        [51.4227863001803, 7.85419464111328]  // linksonder marker
+        [51.4486358805082, 7.85711288452149], // top left bound
+        [51.4462895254982, 7.89839744567871], // top right bound
+        [51.4215025017151, 7.89968490600586], // bottom right bound
+        [51.4227863001803, 7.85419464111328]  // bottom left bound
     ],
     MIN_ZOOM: 13,
     MAX_ZOOM: 17
