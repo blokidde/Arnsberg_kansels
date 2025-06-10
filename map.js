@@ -58,6 +58,7 @@ async function loadMarkers() {
     const res = await fetch(`${API_URL}/hutjes`);
     const data = await res.json();
     data.forEach(m => {
+        L.marker([51.437, 7.878]).addTo(map).bindTooltip("Test Marker");
         const marker = L.marker([m.lat, m.lng]).addTo(map)
             .bindTooltip(m.name + ' ' + m.number, { permanent: true, direction: 'top' });
         marker.description = m.desc;
