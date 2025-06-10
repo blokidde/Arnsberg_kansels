@@ -3,7 +3,12 @@ const CONFIG = {
     API_URL: "https://461a-2001-1c08-883-4400-f0c3-e205-3254-d3c3.ngrok-free.app",
     START_COORDS: [51.4372855, 7.8781002],
     START_ZOOM: 13,
-    MAP_BOUNDS: [[51.432, 7.873], [51.442, 7.883]],
+    MAP_BOUNDS: [
+        [51.4436344703222, 7.85127639770508], // linksboven marker
+        [51.4434206040365, 7.89839744567871], // rechtsboven marker
+        [51.4215025017151, 7.89968490600586], // rechtsonder marker
+        [51.4227863001803, 7.85419464111328]  // linksonder marker
+    ],
     MIN_ZOOM: 13,
     MAX_ZOOM: 17
 };
@@ -58,20 +63,6 @@ function setupMapLayers(map) {
 
 function setupMapBounds(map) {
     const bounds = L.latLngBounds(CONFIG.MAP_BOUNDS);
-    map.setMaxBounds(bounds);
-    map.on('drag', function() {
-        map.panInsideBounds(bounds, { animate: false });
-    });
-}
-
-function setMapBounds(map) {
-    const bounds = L.latLngBounds([
-        [51.4436344703222, 7.85127639770508], // linksboven marker
-        [51.4434206040365, 7.89839744567871], // rechtsboven marker
-        [51.4215025017151, 7.89968490600586], // rechtsonder marker
-        [51.4227863001803, 7.85419464111328]  // linksonder marker
-    ]);
-
     map.setMaxBounds(bounds);
     map.on('drag', function() {
         map.panInsideBounds(bounds, { animate: false });
