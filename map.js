@@ -56,7 +56,9 @@ async function saveMarker(marker) {
 async function loadMarkers() {
     console.log("GET hutjes from:", `${API_URL}/hutjes`);
     const res = await fetch(`${API_URL}/hutjes`);
+    console.log("Response status:", res.status);
     const data = await res.json();
+    console.log("Data ontvangen:", data);
     data.forEach(m => {
         console.log("Marker info:", m);
         if (!m.lat || !m.lng) {
