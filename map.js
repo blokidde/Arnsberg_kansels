@@ -54,20 +54,14 @@ async function saveMarker(marker) {
 }
 
 async function loadMarkers() {
-    console.log("GET hutjes from:", `${API_URL}/hutjes`);
     const res = await fetch(`${API_URL}/hutjes`);
-    console.log("Response status:", res.status);
     const data = await res.json();
-    console.log("Data ontvangen:", data);
     data.forEach(m => {
-        console.log("Marker info:", m);
-        if (!m.lat || !m.lng) {
-            console.error("FOUT: m.lat of m.lng ontbreekt:", m);
-            return;
-        }
         const marker = L.marker([m.lat, m.lng]).addTo(map)
             .bindTooltip(m.name + ' ' + m.number, { permanent: true, direction: 'top' });
+
         marker.description = m.desc;
+
         marker.on('click', async function(ev) {
             if (hutMode === "edit") {
                 const newName = prompt('Nieuwe naam:', m.name);
@@ -77,28 +71,35 @@ async function loadMarkers() {
                 m.name = newName;
                 m.desc = newDesc;
                 marker.bindTooltip(newName + ' ' + m.number, { permanent: true, direction: 'top' }).openTooltip();
-                
+
                 await fetch(`${API_URL}/hutjes/${m.id}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(m)
+                    body: JSON.stringify({
+                        ...m,
+                        latlng: { lat: m.lat, lng: m.lng }
+                    })
                 });
-
             } else if (hutMode === "delete") {
                 if (!confirm(`Verwijder ${m.name} ${m.number}?`)) return;
                 map.removeLayer(marker);
-                await fetch(`${API_URL}/hutjes/${m.id}`, {
-                    method: "DELETE"
-                });
+                await fetch(`${API_URL}/hutjes/${m.id}`, { method: "DELETE" });
             } else {
                 L.popup().setLatLng(ev.latlng)
-                    .setContent('<strong>' + m.name + ' ' + m.number + '</strong><br>' + m.desc)
+                    .setContent(`<strong>${m.name} ${m.number}</strong><br>${m.desc}`)
                     .openOn(map);
             }
         });
-        markers.push(m);
+        markers.push({
+            id: m.id,
+            name: m.name,
+            number: m.number,
+            desc: m.desc,
+            latlng: { lat: m.lat, lng: m.lng }
+        });
     });
 }
+
 
 
 map.on('click', async function(e) {
