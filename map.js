@@ -54,8 +54,10 @@ async function saveMarker(marker) {
 }
 
 async function loadMarkers() {
+    console.log("loadMarkers gestart");
     const res = await fetch(`${API_URL}/hutjes`);
     const data = await res.json();
+    console.log("Gegevens uit API:", data);
     data.forEach(m => {
         const marker = L.marker([m.lat, m.lng]).addTo(map)
             .bindTooltip(m.name + ' ' + m.number, { permanent: true, direction: 'top' });
@@ -90,6 +92,7 @@ async function loadMarkers() {
                     .openOn(map);
             }
         });
+        console.log("Marker toevoegen:", m.lat, m.lng, m.name);
         markers.push({
             id: m.id,
             name: m.name,
