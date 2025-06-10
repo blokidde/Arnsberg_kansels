@@ -86,17 +86,33 @@ function setupMapControls(map) {
 // API functions
 const api = {
     async testConnection() {
+        console.log("Testing API connection...");
+
         try {
-            console.log("Testing API connection...");
-            const response = await fetch(`${CONFIG.API_URL}/`);
-            const data = await response.json();
-            console.log("API root response:", data);
-            return true;
+            const response = await fetch(`${CONFIG.API_URL}/test`);
+            console.log("Response status:", response.status);
+
+            if (!response.ok) {
+                console.error("API connection test failed: HTTP status", response.status);
+                return false;
+            }
+
+            const text = await response.text();
+            try {
+                const data = JSON.parse(text);
+                console.log("API connection test succeeded:", data);
+                return true;
+            } catch (error) {
+                console.error("API connection test failed: Invalid JSON response", error);
+                console.log("Raw response:", text);
+                return false;
+            }
         } catch (error) {
-            console.error('API connection test failed:', error);
+            console.error("API connection test failed:", error);
             return false;
         }
     },
+
     async saveMarker(markerData) {
         try {
             const response = await fetch(`${CONFIG.API_URL}/hutjes`, {
@@ -112,34 +128,33 @@ const api = {
     },
 
     async loadMarkers() {
+        console.log("Loading markers from API...");
+        console.log("API URL:", `${CONFIG.API_URL}/hutjes`);
+
         try {
-            console.log("Loading markers from API...");
-            console.log("API URL:", `${CONFIG.API_URL}/hutjes`);
-            
             const response = await fetch(`${CONFIG.API_URL}/hutjes`);
             console.log("Response status:", response.status);
             console.log("Response headers:", response.headers);
-            
+
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                console.error("Error loading markers: HTTP status", response.status);
+                return [];
             }
-            
-            const responseText = await response.text();
-            console.log("Raw response:", responseText);
-            
-            let data;
+
+            const text = await response.text();
+            console.log("Raw response:", text);
+
             try {
-                data = JSON.parse(responseText);
-            } catch (parseError) {
-                console.error('JSON parse error:', parseError);
-                console.error('Response was:', responseText);
-                throw new Error('Invalid JSON response from server');
+                const data = JSON.parse(text);
+                console.log("Processing markers data:", data);
+                return data;
+            } catch (error) {
+                console.error("Error loading markers: Invalid JSON response", error);
+                console.log("Raw response:", text);
+                return [];
             }
-            
-            console.log("API data received:", data);
-            return data;
         } catch (error) {
-            console.error('Error loading markers:', error);
+            console.error("Error loading markers:", error);
             return [];
         }
     },
