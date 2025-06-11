@@ -30,14 +30,6 @@ const state = {
     hutMode: null
 };
 
-const scalableMarkerIcon = L.divIcon({
-    className: 'scalable-marker',
-    html: '<img src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png" />',
-    iconSize: null,
-    iconAnchor: [12, 41]
-});
-
-
 // Map initialization
 function initializeMap() {
     const map = L.map('map', {
@@ -203,12 +195,18 @@ const api = {
 
 // Marker functions
 function createMarkerElement(markerData, map) {
-    const marker = L.marker([markerData.lat, markerData.lng], { icon: scalableMarkerIcon }).addTo(map)
-        .bindTooltip(`${markerData.name} ${markerData.number}`, { 
-            permanent: true, 
-            direction: 'top',
-            offset: [0, -25] 
-        });
+    const marker = L.circleMarker([markerData.lat, markerData.lng], {
+        radius: 6,
+        fillColor: "blue",
+        color: "white",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.9
+    }).addTo(map).bindTooltip(`${markerData.name} ${markerData.number}`, {
+        permanent: true,
+        direction: 'top',
+        offset: [0, -8]
+    });
 
     marker.description = markerData.desc;
     marker.markerData = markerData;
@@ -462,16 +460,6 @@ function setupEventHandlers(map) {
 
         addNewMarker(e, map);
     });
-
-    // Zoom event handler
-    map.on('zoomend', () => {
-    const zoom = map.getZoom();
-    document.body.className = document.body.className
-        .split(' ')
-        .filter(c => !c.startsWith('zoom-'))
-        .concat(`zoom-${zoom}`)
-        .join(' ');
-});
 
     // UI event handlers
     console.log("Edit toggle geladen");
