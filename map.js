@@ -490,6 +490,16 @@ function setupEventHandlers(map) {
     document.getElementById("delete-zone").addEventListener("click", () => {
         deleteSelectedZone(map);
     });
+    
+    document.getElementById("confirm-zone").addEventListener("click", () => {
+        if (state.drawing && state.drawingPoints.length >= 3 && state.drawingType) {
+            createZone(state.drawingType, state.drawingPoints, map);
+            clearDrawing(map);
+            document.getElementById("confirm-zone").classList.add("hidden");
+            state.drawing = false;
+            state.drawingType = null;
+        }
+    });
 }
 
 // Main initialization
