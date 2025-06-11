@@ -467,20 +467,22 @@ function startDrawing(type, map) {
     }
 }
 
-document.getElementById('draw-polygon').addEventListener('click', function() {
-    startDrawing('polygon', map);
-});
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('draw-polygon').addEventListener('click', function() {
+        startDrawing('polygon', map);
+    });
 
-document.getElementById('draw-line').addEventListener('click', function() {
-    startDrawing('line', map);
-});
+    document.getElementById('draw-line').addEventListener('click', function() {
+        startDrawing('line', map);
+    });
 
-document.getElementById('stop-drawing').addEventListener('click', function() {
-    finishDrawing(map);
-});
+    document.getElementById('stop-drawing').addEventListener('click', function() {
+        finishDrawing(map);
+    });
 
-document.getElementById('delete-zone').addEventListener('click', function() {
-    deleteSelectedZone(map);
+    document.getElementById('delete-zone').addEventListener('click', function() {
+        deleteSelectedZone(map);
+    });
 });
 
 // Hut mode functions
