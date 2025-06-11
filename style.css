@@ -49,7 +49,7 @@ html, body {
     margin-right: 4px;
 }
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .vertex-handle {
