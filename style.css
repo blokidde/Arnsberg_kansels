@@ -123,7 +123,7 @@ html, body {
 
 .leaflet-tooltip {
     transform-origin: bottom center;
-    transition: transform 0.1s linear;
+    transition: transform 0.1s ease;
 }
 
 /* Zoom-schaalklasse die je met JS toevoegt */

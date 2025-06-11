@@ -33,7 +33,7 @@ const state = {
 const scalableMarkerIcon = L.divIcon({
     className: 'scalable-marker',
     html: '<img src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png" />',
-    iconSize: [25, 41],
+    iconSize: null,
     iconAnchor: [12, 41]
 });
 
