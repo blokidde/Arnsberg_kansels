@@ -126,8 +126,18 @@ html, body {
     transition: transform 0.1s ease;
 }
 
-/* Zoom-schaalklasse die je met JS toevoegt */
 .zoom-14 .leaflet-tooltip { transform: scale(0.75); }
 .zoom-15 .leaflet-tooltip { transform: scale(0.9); }
 .zoom-16 .leaflet-tooltip { transform: scale(1.05); }
 .zoom-17 .leaflet-tooltip { transform: scale(1.2); }
+
+.zoom-14 .scalable-marker img { transform: scale(0.75); }
+.zoom-15 .scalable-marker img { transform: scale(0.9); }
+.zoom-16 .scalable-marker img { transform: scale(1.1); }
+.zoom-17 .scalable-marker img { transform: scale(1.3); }
+
+.scalable-marker img {
+    transform-origin: bottom center;
+    transition: transform 0.1s ease;
+}
+
