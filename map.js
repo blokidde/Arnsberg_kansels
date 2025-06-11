@@ -9,7 +9,7 @@ const CONFIG = {
         [51.4215025017151, 7.89968490600586], // bottom right bound
         [51.4227863001803, 7.85419464111328]  // bottom left bound
     ],
-    MIN_ZOOM: 13,
+    MIN_ZOOM: 14,
     MAX_ZOOM: 17
 };
 
