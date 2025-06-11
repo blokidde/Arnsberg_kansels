@@ -98,4 +98,8 @@ html, body {
 .hidden {
     display: none;
 }
+#edit-options button {
+    display: block;
+    margin-bottom: 8px;
+}
 
