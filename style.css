@@ -132,3 +132,32 @@ html, body {
 .leaflet-tooltip-right::before {
     display: none !important;
 }
+
+#login-bar, #logout-bar {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 2001;
+    background: rgba(255,255,255,0.98);
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    padding: 8px 12px;
+}
+#login-bar button, #logout-bar button {
+    margin-left: 4px;
+}
+#login-container {
+    position: fixed;
+    top: 56px;
+    left: 16px;
+    z-index: 2001;
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+.hidden {
+    display: none !important;
+}
+
+

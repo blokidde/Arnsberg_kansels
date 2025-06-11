@@ -9,7 +9,14 @@
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div id="login-container">
+    <div id="login-bar">
+    <button id="show-login-btn">Login</button>
+    </div>
+    <div id="logout-bar" class="hidden">
+        <span id="logged-in-message"></span>
+        <button id="logout-btn">Uitloggen</button>
+    </div>
+    <div id="login-container" class="hidden">
         <input type="text" id="username" placeholder="Gebruikersnaam">
         <input type="password" id="password" placeholder="Wachtwoord">
         <button id="login-button">Inloggen</button>
