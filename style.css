@@ -120,3 +120,14 @@ html, body {
 .leaflet-tooltip-right::before {
     display: none!important;
 }
+
+.leaflet-tooltip {
+    transform-origin: bottom center;
+    transition: transform 0.1s linear;
+}
+
+/* Zoom-schaalklasse die je met JS toevoegt */
+.zoom-14 .leaflet-tooltip { transform: scale(0.75); }
+.zoom-15 .leaflet-tooltip { transform: scale(0.9); }
+.zoom-16 .leaflet-tooltip { transform: scale(1.05); }
+.zoom-17 .leaflet-tooltip { transform: scale(1.2); }

@@ -30,11 +30,11 @@ const state = {
     hutMode: null
 };
 
-const smallMarkerIcon = L.icon({
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    iconSize: [20, 32],
-    iconAnchor: [10, 32],
-    popupAnchor: [0, -32]
+const scalableMarkerIcon = L.divIcon({
+    className: 'scalable-marker',
+    html: '<img src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png" />',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
 });
 
 
@@ -203,11 +203,11 @@ const api = {
 
 // Marker functions
 function createMarkerElement(markerData, map) {
-    const marker = L.marker([markerData.lat, markerData.lng], { icon: smallMarkerIcon }).addTo(map)
+    const marker = L.marker([markerData.lat, markerData.lng], { icon: scalableMarkerIcon }).addTo(map)
         .bindTooltip(`${markerData.name} ${markerData.number}`, { 
             permanent: true, 
             direction: 'top',
-            offset: [0, -20] 
+            offset: [0, -25] 
         });
 
     marker.description = markerData.desc;
@@ -463,6 +463,16 @@ function setupEventHandlers(map) {
         addNewMarker(e, map);
     });
 
+    // Zoom event handler
+    map.on('zoomend', () => {
+    const zoom = map.getZoom();
+    document.body.className = document.body.className
+        .split(' ')
+        .filter(c => !c.startsWith('zoom-'))
+        .concat(`zoom-${zoom}`)
+        .join(' ');
+});
+
     // UI event handlers
     console.log("Edit toggle geladen");
     document.getElementById("toggle-edit").addEventListener("click", () => {
@@ -503,7 +513,7 @@ function setupEventHandlers(map) {
     document.getElementById("delete-zone").addEventListener("click", () => {
         deleteSelectedZone(map);
     });
-    
+
     document.getElementById("confirm-zone").addEventListener("click", () => {
         if (state.drawing && state.drawingPoints.length >= 3 && state.drawingType) {
             createZone(state.drawingType, state.drawingPoints, map);
