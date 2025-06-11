@@ -463,12 +463,10 @@ function setupEventHandlers(map) {
 
     // Map zoom handler
     map.on('zoomend', () => {
-        const zoom = map.getZoom();                 // bijv. 13, 14, 15, 16, 17
-        document.body.className = document.body.className
-            .split(' ')
-            .filter(c => !c.startsWith('zoom-'))    // oude klasse(s) weg
-            .concat(`zoom-${zoom}`)                 // nieuwe klasse toevoegen
-            .join(' ');
+        const zoom = map.getZoom();              // 13–17
+        document.body.classList
+            .forEach(c => { if (c.startsWith('zoom-')) document.body.classList.remove(c); });
+        document.body.classList.add(`zoom-${zoom}`);
     });
 
     // UI event handlers
