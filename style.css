@@ -80,13 +80,6 @@ html, body {
     border: none;
     border-radius: 4px;
 }
-
-#edit-options {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
 #legend-box {
     font: 14px Arial;
 }

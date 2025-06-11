@@ -437,9 +437,6 @@ function clearDrawing(map) {
 
 // Event handlers
 function setupEventHandlers(map) {
-    // Hide edit options initially
-    document.getElementById("edit-options").classList.add("hidden");
-
     // Map click handler
     map.on('click', function(e) {
         if (state.drawing) {
@@ -456,8 +453,7 @@ function setupEventHandlers(map) {
 
     // UI event handlers
     document.getElementById("toggle-edit").addEventListener("click", () => {
-        const editOptions = document.getElementById("edit-options");
-        editOptions.classList.toggle("hidden");
+        document.getElementById("edit-options").classList.toggle("hidden");
         document.getElementById("legend-box").classList.add("hidden");
     });
 
@@ -494,16 +490,6 @@ function setupEventHandlers(map) {
     document.getElementById("delete-zone").addEventListener("click", () => {
         deleteSelectedZone(map);
     });
-    
-    document.getElementById("confirm-zone").addEventListener("click", () => {
-        if (state.drawing && state.drawingPoints.length >= 3 && state.drawingType) {
-            createZone(state.drawingType, state.drawingPoints, map);
-            clearDrawing(map);
-            document.getElementById("confirm-zone").classList.add("hidden");
-            state.drawing = false;
-            state.drawingType = null;
-        }
-    });
 }
 
 // Main initialization
@@ -514,8 +500,6 @@ async function init() {
     const apiConnected = await api.testConnection();
     if (!apiConnected) {
         console.error("API connection failed - markers will not load");
-        alert('Fout bij het laden van de applicatie');
-        return; // Stop initialization
     }
     
     const map = initializeMap();
