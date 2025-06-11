@@ -30,6 +30,14 @@ const state = {
     hutMode: null
 };
 
+const smallMarkerIcon = L.icon({
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    iconSize: [20, 32],
+    iconAnchor: [10, 32],
+    popupAnchor: [0, -32]
+});
+
+
 // Map initialization
 function initializeMap() {
     const map = L.map('map', {
@@ -195,7 +203,7 @@ const api = {
 
 // Marker functions
 function createMarkerElement(markerData, map) {
-    const marker = L.marker([markerData.lat, markerData.lng]).addTo(map)
+    const marker = L.marker([markerData.lat, markerData.lng], { icon: smallMarkerIcon }).addTo(map)
         .bindTooltip(`${markerData.name} ${markerData.number}`, { 
             permanent: true, 
             direction: 'top' 
