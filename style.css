@@ -111,3 +111,12 @@ html, body {
     padding: 0;
     color: white;
 }
+
+.leaflet-tooltip-top::before,
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom::before,
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left::before,
+.leaflet-tooltip-right::before {
+    display: none!important;
+}

@@ -207,7 +207,7 @@ function createMarkerElement(markerData, map) {
         .bindTooltip(`${markerData.name} ${markerData.number}`, { 
             permanent: true, 
             direction: 'top',
-            offset: [0, -10] 
+            offset: [0, -20] 
         });
 
     marker.description = markerData.desc;
@@ -442,6 +442,9 @@ function clearDrawing(map) {
     }
     
     state.drawingPoints = [];
+
+    const confirmBtn = document.getElementById('confirm-zone');
+    if (confirmBtn) confirmBtn.classList.add('hidden');
 }
 
 // Event handlers
@@ -499,6 +502,15 @@ function setupEventHandlers(map) {
 
     document.getElementById("delete-zone").addEventListener("click", () => {
         deleteSelectedZone(map);
+    });
+    
+    document.getElementById("confirm-zone").addEventListener("click", () => {
+        if (state.drawing && state.drawingPoints.length >= 3 && state.drawingType) {
+            createZone(state.drawingType, state.drawingPoints, map);
+            clearDrawing(map);
+            state.drawing     = false;
+            state.drawingType = null;
+        }
     });
 }
 
