@@ -206,7 +206,8 @@ function createMarkerElement(markerData, map) {
     const marker = L.marker([markerData.lat, markerData.lng], { icon: smallMarkerIcon }).addTo(map)
         .bindTooltip(`${markerData.name} ${markerData.number}`, { 
             permanent: true, 
-            direction: 'top' 
+            direction: 'top',
+            offset: [0, -10] 
         });
 
     marker.description = markerData.desc;
