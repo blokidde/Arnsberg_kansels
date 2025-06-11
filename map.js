@@ -437,6 +437,9 @@ function clearDrawing(map) {
 
 // Event handlers
 function setupEventHandlers(map) {
+    // Hide edit options initially
+    document.getElementById("edit-options").classList.add("hidden");
+
     // Map click handler
     map.on('click', function(e) {
         if (state.drawing) {
@@ -453,7 +456,8 @@ function setupEventHandlers(map) {
 
     // UI event handlers
     document.getElementById("toggle-edit").addEventListener("click", () => {
-        document.getElementById("edit-options").classList.toggle("hidden");
+        const editOptions = document.getElementById("edit-options");
+        editOptions.classList.toggle("hidden");
         document.getElementById("legend-box").classList.add("hidden");
     });
 
@@ -510,6 +514,8 @@ async function init() {
     const apiConnected = await api.testConnection();
     if (!apiConnected) {
         console.error("API connection failed - markers will not load");
+        alert('Fout bij het laden van de applicatie');
+        return; // Stop initialization
     }
     
     const map = initializeMap();
