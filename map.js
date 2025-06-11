@@ -30,6 +30,11 @@ const state = {
     hutMode: null
 };
 
+function getAuthHeaders() {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 // Map initialization
 function initializeMap() {
     const map = L.map('map', {
@@ -94,9 +99,10 @@ function setupMapControls(map) {
 const api = {
     async testConnection() {
         console.log("Testing API connection...");
+        const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
 
         try {
-            const response = await fetch(`${CONFIG.API_URL}/test`, { headers: { ...NGROK_SKIP_HEADER } });
+            const response = await fetch(`${CONFIG.API_URL}/test`, { headers });
             console.log("Response status:", response.status);
 
             if (!response.ok) {
@@ -121,10 +127,12 @@ const api = {
     },
 
     async saveMarker(markerData) {
+        const headers = { ...getAuthHeaders(), "Content-Type": "application/json" };
+
         try {
             const response = await fetch(`${CONFIG.API_URL}/hutjes`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify(markerData)
             });
             return await response.json();
@@ -136,10 +144,10 @@ const api = {
 
     async loadMarkers() {
         console.log("Loading markers from API...");
-        console.log("API URL:", `${CONFIG.API_URL}/hutjes`);
+        const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
 
         try {
-            const response = await fetch(`${CONFIG.API_URL}/hutjes`, { headers: { ...NGROK_SKIP_HEADER } });
+            const response = await fetch(`${CONFIG.API_URL}/hutjes`, { headers });
             console.log("Response status:", response.status);
             console.log("Response headers:", response.headers);
 
@@ -149,8 +157,6 @@ const api = {
             }
 
             const text = await response.text();
-            console.log("Raw response:", text);
-
             try {
                 const data = JSON.parse(text);
                 console.log("Processing markers data:", data);
@@ -167,10 +173,12 @@ const api = {
     },
 
     async updateMarker(markerId, markerData) {
+        const headers = { ...getAuthHeaders(), "Content-Type": "application/json" };
+
         try {
             const response = await fetch(`${CONFIG.API_URL}/hutjes/${markerId}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify(markerData)
             });
             return await response.json();
@@ -181,9 +189,12 @@ const api = {
     },
 
     async deleteMarker(markerId) {
+        const headers = { ...getAuthHeaders() };
+
         try {
             const response = await fetch(`${CONFIG.API_URL}/hutjes/${markerId}`, { 
-                method: "DELETE" 
+                method: "DELETE",
+                headers
             });
             return await response.json();
         } catch (error) {
