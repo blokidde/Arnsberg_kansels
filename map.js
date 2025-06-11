@@ -347,35 +347,23 @@ function getZoneStyle(type) {
 
 function createZone(type, latlngs, map) {
     const poly = L.polygon(latlngs, getZoneStyle(type)).addTo(map);
-    const zone = {
-        id: state.zoneId++,
-        type,
-        polygon: poly,
-        latlngs: latlngs.slice()
+    const zone = { 
+        id: state.zoneId++, 
+        type, 
+        polygon: poly, 
+        latlngs: latlngs.slice() 
     };
-
+    
     poly.on('click', function(e) {
         L.DomEvent.stopPropagation(e);
         selectZone(zone, map);
         poly.openPopup(e.latlng);
     });
-
+    
     poly.bindPopup(`Type: ${type}<br>ID: ${zone.id}`);
     state.zones.push(zone);
-
-    confirmZoneCreation(zone);
-
+    
     return zone;
-}
-
-function createBoundary(latlngs, map) {
-    const boundary = L.polyline(latlngs, getZoneStyle('grens')).addTo(map);
-    boundary.bindPopup('Boundary created');
-    return boundary;
-}
-
-function confirmZoneCreation(zone) {
-    alert(`Zone created: Type - ${zone.type}, ID - ${zone.id}`);
 }
 
 function selectZone(zone, map) {
@@ -428,100 +416,103 @@ function addDrawingPoint(latlng, map) {
         state.tempLine.setLatLngs(state.drawingPoints);
     }
     
-    if (state.drawingType === 'polygon') {
-        const closed = state.drawingPoints.length > 2 && latlng.equals(state.drawingPoints[0]);
-        if (closed) {
-            finishDrawing(map);
-        }
+    if (state.drawingPoints.length >= 3) {
+        // Show confirm button if it exists
+        const confirmBtn = document.getElementById('confirm-zone');
+        if (confirmBtn) confirmBtn.classList.remove('hidden');
     }
 }
 
-function finishDrawing(map) {
-    state.drawing = false;
-    map.off('click', addDrawingPoint);
+function clearDrawing(map) {
+    state.tempMarkers.forEach(m => map.removeLayer(m));
+    state.tempMarkers = [];
     
     if (state.tempLine) {
         map.removeLayer(state.tempLine);
         state.tempLine = null;
     }
     
-    if (state.tempMarkers.length > 0) {
-        state.tempMarkers.forEach(m => map.removeLayer(m));
-        state.tempMarkers = [];
-    }
-    
-    alert('Tekening voltooid');
-}
-
-function startDrawing(type, map) {
-    state.drawing = true;
-    state.drawingType = type;
     state.drawingPoints = [];
-    state.tempMarkers = [];
-    state.tempLine = null;
-    
-    map.on('click', addDrawingPoint);
-    
-    if (type === 'polygon') {
-        L.polyline([], { dashArray: '4,4' }).addTo(map);
-    }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('draw-polygon').addEventListener('click', function() {
-        startDrawing('polygon', map);
+// Event handlers
+function setupEventHandlers(map) {
+    // Map click handler
+    map.on('click', function(e) {
+        if (state.drawing) {
+            addDrawingPoint(e.latlng, map);
+            return;
+        }
+
+        if (state.selectedZone) {
+            deselectZone(map);
+        }
+
+        addNewMarker(e, map);
     });
 
-    document.getElementById('draw-line').addEventListener('click', function() {
-        startDrawing('line', map);
+    // UI event handlers
+    document.getElementById("toggle-edit").addEventListener("click", () => {
+        document.getElementById("edit-options").classList.toggle("hidden");
+        document.getElementById("legend-box").classList.add("hidden");
     });
 
-    document.getElementById('stop-drawing').addEventListener('click', function() {
-        finishDrawing(map);
+    document.getElementById("toggle-legend").addEventListener("click", () => {
+        document.getElementById("legend-box").classList.toggle("hidden");
+        document.getElementById("edit-options").classList.add("hidden");
     });
 
-    document.getElementById('delete-zone').addEventListener('click', function() {
+    document.getElementById("add-zone").addEventListener("click", () => {
+        document.getElementById("zone-types").classList.toggle("hidden");
+    });
+
+    document.getElementById("mode-add").addEventListener("click", () => {
+        state.hutMode = "add";
+    });
+
+    document.getElementById("mode-edit").addEventListener("click", () => {
+        state.hutMode = "edit";
+    });
+
+    document.getElementById("mode-delete").addEventListener("click", () => {
+        state.hutMode = "delete";
+    });
+
+    document.getElementById("zone-types").addEventListener("click", e => {
+        if (e.target.tagName !== 'BUTTON') return;
+        
+        state.drawing = true;
+        state.drawingType = e.target.dataset.type;
+        document.getElementById("zone-types").classList.add("hidden");
+        clearDrawing(map);
+    });
+
+    document.getElementById("delete-zone").addEventListener("click", () => {
         deleteSelectedZone(map);
     });
-});
-
-// Hut mode functions
-function setHutMode(mode) {
-    state.hutMode = mode;
-    
-    if (mode === 'edit') {
-        document.getElementById('edit-controls').classList.remove('hidden');
-        document.getElementById('delete-controls').classList.add('hidden');
-    } else if (mode === 'delete') {
-        document.getElementById('delete-controls').classList.remove('hidden');
-        document.getElementById('edit-controls').classList.add('hidden');
-    } else {
-        document.getElementById('edit-controls').classList.add('hidden');
-        document.getElementById('delete-controls').classList.add('hidden');
-    }
 }
 
-document.getElementById('mode-view').addEventListener('click', function() {
-    setHutMode('view');
-});
-
-document.getElementById('mode-edit').addEventListener('click', function() {
-    setHutMode('edit');
-});
-
-document.getElementById('mode-delete').addEventListener('click', function() {
-    setHutMode('delete');
-});
-
-// Initialize map and load markers
-const map = initializeMap();
-
-loadAndDisplayMarkers(map);
-
-api.testConnection().then(connected => {
-    if (connected) {
-        loadAndDisplayMarkers(map);
-    } else {
-        alert('Kon niet verbinden met de API');
+// Main initialization
+async function init() {
+    console.log("Initializing map application...");
+    
+    // Test API connection first
+    const apiConnected = await api.testConnection();
+    if (!apiConnected) {
+        console.error("API connection failed - markers will not load");
     }
+    
+    const map = initializeMap();
+    setupEventHandlers(map);
+    
+    console.log("Loading markers...");
+    await loadAndDisplayMarkers(map);
+    
+    console.log("Map application initialized successfully");
+}
+
+// Start the application
+init().catch(error => {
+    console.error('Failed to initialize application:', error);
+    alert('Fout bij het laden van de applicatie');
 });
