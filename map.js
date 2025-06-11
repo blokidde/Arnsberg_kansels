@@ -452,6 +452,7 @@ function setupEventHandlers(map) {
     });
 
     // UI event handlers
+    console.log("Edit toggle geladen");
     document.getElementById("toggle-edit").addEventListener("click", () => {
         document.getElementById("edit-options").classList.toggle("hidden");
         document.getElementById("legend-box").classList.add("hidden");
