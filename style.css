@@ -114,10 +114,21 @@ html, body {
     background: transparent;
     border: none;
     box-shadow: none;
-    font-size: 10px;
     padding: 0;
     color: white;
-    font-weight: bold;
-    text-shadow: 0 0 3px black;
-    pointer-events: none;
+    font-size: 12px;
+    transform-origin: bottom center;
+    transition: transform 0.1s ease;
+}
+
+.zoom-14 .leaflet-tooltip { transform: scale(0.75) !important; }
+.zoom-15 .leaflet-tooltip { transform: scale(0.9) !important; }
+.zoom-16 .leaflet-tooltip { transform: scale(1.05) !important; }
+.zoom-17 .leaflet-tooltip { transform: scale(1.2) !important; }
+
+.leaflet-tooltip-top::before,
+.leaflet-tooltip-bottom::before,
+.leaflet-tooltip-left::before,
+.leaflet-tooltip-right::before {
+    display: none !important;
 }

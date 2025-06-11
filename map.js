@@ -461,6 +461,16 @@ function setupEventHandlers(map) {
         addNewMarker(e, map);
     });
 
+    // Map zoom handler
+    map.on('zoomend', () => {
+        const zoom = map.getZoom();                 // bijv. 13, 14, 15, 16, 17
+        document.body.className = document.body.className
+            .split(' ')
+            .filter(c => !c.startsWith('zoom-'))    // oude klasse(s) weg
+            .concat(`zoom-${zoom}`)                 // nieuwe klasse toevoegen
+            .join(' ');
+    });
+
     // UI event handlers
     console.log("Edit toggle geladen");
     document.getElementById("toggle-edit").addEventListener("click", () => {
