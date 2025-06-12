@@ -1,8 +1,8 @@
 html, body {
     height: 100%;
     margin: 0;
-    font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
-    background: #f5f7fa;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f7fafc;
 }
 
 #map {
@@ -12,20 +12,14 @@ html, body {
 
 .leaflet-container {
     touch-action: none;
-    border-radius: 12px;
-    transition: box-shadow 0.25s;
-    box-shadow: 0 4px 20px rgba(60,80,120,0.10);
 }
 
 .legend {
     background: white;
-    padding: 10px 16px;
-    font: 15px/18px 'Segoe UI', Arial, Helvetica, sans-serif;
-    box-shadow: 0 2px 12px rgba(40,80,80,0.12);
-    border-radius: 10px;
-    margin-bottom: 10px;
-    transition: box-shadow 0.25s;
-    border: 1.5px solid #e3eaf2;
+    padding: 6px 12px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.13);
+    border-radius: 6px;
 }
 
 .legend i {
@@ -33,23 +27,22 @@ html, body {
     height: 18px;
     float: left;
     margin-right: 8px;
-    opacity: 0.8;
+    opacity: 0.7;
     border-radius: 5px;
 }
 
 .locate-btn {
-    background: linear-gradient(90deg,#e3f2fd 60%, #bbdefb 100%);
-    padding: 8px 18px;
-    border: none;
+    background: white;
+    padding: 7px 15px;
+    border: 1px solid #e3eaf2;
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: 7px;
     font-weight: bold;
-    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
-    box-shadow: 0 1px 6px rgba(70,110,180,0.09);
+    transition: background 0.14s, box-shadow 0.18s;
+    box-shadow: 0 1px 5px rgba(60,80,120,0.07);
 }
 .locate-btn:hover {
-    background: linear-gradient(90deg,#bbdefb 0%, #e3f2fd 100%);
-    transform: scale(1.05);
+    background: #f1f6fa;
 }
 
 #control-panel {
@@ -62,16 +55,10 @@ html, body {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    padding: 12px 16px;
+    padding: 10px 15px;
     border-top: 1.5px solid #e3eaf2;
     backdrop-filter: blur(4px);
     box-shadow: 0 -2px 12px rgba(60,80,120,0.05);
-    animation: slide-up 0.5s;
-}
-
-@keyframes slide-up {
-    from { transform: translateY(60px); opacity: 0;}
-    to { transform: translateY(0); opacity: 1;}
 }
 
 #zone-options button {
@@ -83,10 +70,10 @@ html, body {
 }
 
 .vertex-handle {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     background: #2196f3;
-    border: 2.5px solid white;
+    border: 2px solid white;
     border-radius: 50%;
     transition: background 0.2s;
 }
@@ -96,82 +83,71 @@ html, body {
 
 #floating-menu {
     position: fixed;
-    top: 18px;
-    right: 18px;
-    z-index: 1001;
+    top: 16px;
+    right: 16px;
+    z-index: 3000;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.97);
-    padding: 16px;
-    border-radius: 16px;
-    box-shadow: 0 6px 24px rgba(60,80,120,0.09);
+    background: rgba(255, 255, 255, 0.98);
+    padding: 12px 18px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.13);
     border: 1.5px solid #e3eaf2;
-    animation: fade-in 0.6s;
-}
-
-@keyframes fade-in {
-    from { opacity: 0; transform: translateY(-20px);}
-    to { opacity: 1; transform: translateY(0);}
 }
 
 #floating-menu button {
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     cursor: pointer;
-    padding: 10px 18px;
+    padding: 7px 14px;
     border: none;
-    border-radius: 7px;
+    border-radius: 5px;
     background: #e3f2fd;
     font-size: 1rem;
     font-weight: 600;
-    transition: background 0.22s, box-shadow 0.17s, transform 0.11s;
-    box-shadow: 0 1px 5px rgba(30,100,190,0.07);
-    color: #0d355b;
+    color: #16569e;
+    transition: background 0.18s, color 0.13s;
 }
 #floating-menu button:hover {
     background: #bbdefb;
-    color: #16569e;
-    transform: translateY(-1.5px) scale(1.04);
-    box-shadow: 0 2px 14px rgba(30,100,190,0.11);
+    color: #10427a;
 }
 
 #edit-options {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 7px;
 }
 
 #legend-box {
-    font: 15px 'Segoe UI', Arial;
+    font: 14px Arial;
 }
 
 .legend-item {
     display: flex;
     align-items: center;
-    margin-bottom: 7px;
+    margin-bottom: 4px;
 }
 
 .legend-item i {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     display: inline-block;
-    margin-right: 8px;
-    opacity: 0.8;
-    border-radius: 5px;
+    margin-right: 6px;
+    opacity: 0.7;
+    border-radius: 4px;
 }
 
 .leaflet-tooltip {
-    background: rgba(30,80,180,0.77);
+    background: transparent;
     border: none;
-    box-shadow: 0 1.5px 6px rgba(40,70,180,0.10);
-    padding: 3px 8px;
-    color: #fff;
-    font-weight: 600;
+    box-shadow: none;
+    padding: 0;
+    color: white;
+    font-weight: bold;
     pointer-events: none;
-    border-radius: 6px;
-    font-size: 11px;
-    letter-spacing: 0.03em;
-    transition: background 0.14s;
+    font-size: 10px;
+    text-shadow: 0 0 4px #000, 0 0 2px #333;
 }
 
 .zoom-13 .leaflet-tooltip { font-size: 7px;  }
@@ -187,44 +163,58 @@ html, body {
     display: none !important;
 }
 
+/* Login/Logout bottom left, platte tekst */
 #login-bar, #logout-bar {
     position: fixed;
-    top: 18px;
-    left: 18px;
+    left: 16px;
+    bottom: 16px;
+    top: auto;
+    right: auto;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
     z-index: 2001;
-    background: rgba(255,255,255,0.97);
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-    padding: 10px 20px;
-    border: 1.5px solid #e3eaf2;
-    animation: fade-in 0.6s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 #login-bar button, #logout-bar button {
-    margin-left: 8px;
-    font-weight: 500;
-    background: #e3f2fd;
-    color: #155d9c;
+    background: none;
     border: none;
-    border-radius: 7px;
-    padding: 8px 18px;
-    transition: background 0.18s, color 0.14s, transform 0.12s;
+    color: #16569e;
+    font-size: 1rem;
+    padding: 4px 10px;
+    margin: 0;
+    font-weight: bold;
+    border-radius: 0;
+    box-shadow: none;
+    cursor: pointer;
 }
 #login-bar button:hover, #logout-bar button:hover {
-    background: #bbdefb;
     color: #10427a;
-    transform: scale(1.03);
+    text-decoration: underline;
 }
+
+#logout-bar span {
+    color: #222;
+    font-size: 1rem;
+    font-weight: normal;
+    margin-right: 8px;
+}
+
+/* Login-popup basic maar netjes */
 #login-container {
     position: fixed;
-    top: 70px;
-    left: 18px;
-    z-index: 2001;
+    left: 16px;
+    bottom: 56px;
+    top: auto;
+    z-index: 2002;
     background: white;
-    padding: 16px 22px 14px 22px;
-    border-radius: 14px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    padding: 15px 22px 14px 22px;
+    border-radius: 10px;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.11);
     border: 1.5px solid #e3eaf2;
-    animation: fade-in 0.3s;
     display: flex;
     flex-direction: column;
     gap: 9px;
@@ -232,15 +222,15 @@ html, body {
 #login-container input {
     padding: 8px 10px;
     margin-bottom: 4px;
-    border: 1.5px solid #e3eaf2;
+    border: 1.2px solid #e3eaf2;
     border-radius: 5px;
-    background: #f5f7fa;
+    background: #f8fafc;
     font-size: 1rem;
     transition: border 0.16s;
 }
 #login-container input:focus {
     outline: none;
-    border: 1.5px solid #43a047;
+    border: 1.2px solid #43a047;
 }
 #login-container button {
     background: #43a047;
