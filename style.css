@@ -163,7 +163,7 @@ html, body {
     display: none !important;
 }
 
-#login-bar, #logout-bar {
+#login-bar {
     position: fixed;
     left: 12px;
     bottom: 12px;
@@ -173,6 +173,22 @@ html, body {
     box-shadow: none;
     border-radius: 10px;
     padding: 0;
+    z-index: 2200;  /* Hoger dan de map, lager dan floating-menu */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#logout-bar {
+    position: fixed;
+    left: 12px;
+    bottom: 12px;
+    top: auto;
+    right: auto;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: none;
+    border-radius: 10px;
+    padding-left: 14px;
     z-index: 2200;  /* Hoger dan de map, lager dan floating-menu */
     display: flex;
     align-items: center;

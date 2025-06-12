@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
             loginBar.classList.add("hidden");
             loginContainer.classList.add("hidden");
             logoutBar.classList.remove("hidden");
-            loggedInMsg.textContent = (username ? username : "");
+            loggedInMsg.textContent = ( username ? username : "");
         } else {
             loginBar.classList.remove("hidden");
             logoutBar.classList.add("hidden");
