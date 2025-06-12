@@ -30,6 +30,14 @@ const state = {
     hutMode: null
 };
 
+function isLoggedIn() {
+    return !!localStorage.getItem("token");
+}
+
+function showLoginError() {
+    alert("Je bent niet ingelogd. Je kunt niet editen, toevoegen of verwijderen.");
+}
+
 function getAuthHeaders() {
     const token = localStorage.getItem("token");
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -189,6 +197,10 @@ const api = {
     },
 
     async deleteMarker(markerId) {
+        if (!isLoggedIn()) {
+            showLoginError();
+            return;
+        }
         const headers = { ...getAuthHeaders() };
 
         try {
@@ -240,6 +252,10 @@ function handleMarkerClick(event, marker, markerData, map) {
 }
 
 async function editMarker(marker, markerData) {
+    if (!isLoggedIn()) {
+        showLoginError();
+        return;
+    }
     const newName = prompt('Nieuwe naam:', markerData.name);
     const newDesc = prompt('Nieuwe beschrijving:', markerData.desc);
     
@@ -314,6 +330,10 @@ async function loadAndDisplayMarkers(map) {
 }
 
 async function addNewMarker(event, map) {
+    if (!isLoggedIn()) {
+        showLoginError();
+        return;
+    }
     if (state.hutMode !== "add") return;
 
     const name = prompt('Naam van de hut?');
@@ -364,6 +384,10 @@ function getZoneStyle(type) {
 }
 
 function createZone(type, latlngs, map) {
+    if (!isLoggedIn()) {
+        showLoginError();
+        return;
+    }
     const poly = L.polygon(latlngs, getZoneStyle(type)).addTo(map);
     const zone = { 
         id: state.zoneId++, 
@@ -415,6 +439,10 @@ function deselectZone(map) {
 }
 
 function deleteSelectedZone(map) {
+    if (!isLoggedIn()) {
+        showLoginError();
+        return;
+    }
     if (!state.selectedZone) return;
     
     map.removeLayer(state.selectedZone.polygon);
