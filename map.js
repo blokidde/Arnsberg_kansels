@@ -66,10 +66,15 @@ function setupMapLayers(map) {
     const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
     const light = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png');
 
-    L.control.layers({
-        "Licht": light,
-        "Satelliet": satellite
-    }).addTo(map);
+    L.control.layers(
+        {
+            "Licht": light,
+            "Satelliet": satellite
+        },
+        null,
+        { position: 'bottomright' }
+    ).addTo(map);
+
 
     satellite.addTo(map);
 }

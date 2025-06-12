@@ -163,38 +163,40 @@ html, body {
     display: none !important;
 }
 
-/* Login/Logout bottom left, platte tekst */
 #login-bar, #logout-bar {
     position: fixed;
-    left: 16px;
-    bottom: 16px;
+    left: 12px;
+    bottom: 12px;
     top: auto;
     right: auto;
-    background: none;
+    background: rgba(255, 255, 255, 0.98);
     box-shadow: none;
-    border-radius: 0;
+    border-radius: 10px;
     padding: 0;
-    z-index: 2001;
+    z-index: 2200;  /* Hoger dan de map, lager dan floating-menu */
     display: flex;
     align-items: center;
     gap: 10px;
 }
+
 #login-bar button, #logout-bar button {
     background: none;
     border: none;
-    color: #16569e;
-    font-size: 1rem;
-    padding: 4px 10px;
+    color: #184080;
+    font-size: 1.07rem;
+    padding: 3px 10px;
     margin: 0;
-    font-weight: bold;
+    font-weight: 600;
     border-radius: 0;
     box-shadow: none;
     cursor: pointer;
+    transition: color 0.13s, text-decoration 0.13s;
 }
 #login-bar button:hover, #logout-bar button:hover {
-    color: #10427a;
+    color: #156c1d;
     text-decoration: underline;
 }
+
 
 #logout-bar span {
     color: #222;
