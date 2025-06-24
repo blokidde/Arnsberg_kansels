@@ -115,7 +115,7 @@ const api = {
         const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
 
         try {
-            const response = await fetch(`${CONFIG.API_URL}/test`, { headers });
+            const response = await fetch(`${CONFIG.API_URL}/test-db`, { headers });
             console.log("Response status:", response.status);
 
             if (!response.ok) {
@@ -416,31 +416,37 @@ function getZoneStyle(type) {
     }
 }
 
-function createZone(type, latlngs, map) {
-    if (!isLoggedIn()) {
+function createZone(type, latlngs, map, fromServer = null) {
+    const adding = (fromServer === null);
+    if (adding && !isLoggedIn()) {
         showLoginError();
         return;
     }
+
     const poly = (type === 'grens')
         ? L.polyline(latlngs, getZoneStyle(type)).addTo(map)
         : L.polygon(latlngs, getZoneStyle(type)).addTo(map);
+
     const zone = {
-        id: (arguments.length === 4 && arguments[3].id) ? arguments[3].id : null,
+        id: adding ? null : fromServer.id,
         type,
-        label: (arguments.length === 4 && arguments[3].label) || '',
+        label: adding ? '' : (fromServer.label || ''),
         polygon: poly,
-        latlngs: latlngs.slice()
+        latlngs: latlngs.slice()         // eigen kopie
     };
 
-    poly.on('click', function (e) {
+    poly.bindPopup(() => {
+        const idTxt = zone.id ?? '-';
+        return `${zone.label || type}<br>ID: ${idTxt}`;
+    });
+
+    poly.on('click', e => {
         L.DomEvent.stopPropagation(e);
         selectZone(zone, map);
         poly.openPopup(e.latlng);
     });
 
-    poly.bindPopup(`Type: ${type}<br>ID: ${zone.id}`);
     state.zones.push(zone);
-
     return zone;
 }
 
@@ -585,7 +591,8 @@ function setupEventHandlers(map) {
     });
 
     document.getElementById('confirm-zone').addEventListener('click', async () => {
-        if (!(state.drawing && state.drawingPoints.length >= 3 && state.drawingType)) return;
+        const minPts = (state.drawingType === 'grens') ? 2 : 3;
+        if (!(state.drawing && state.drawingPoints.length >= minPts && state.drawingType)) return;
 
         const label = prompt('Naam/label voor deze zone?') || state.drawingType;
         const zone = createZone(state.drawingType, state.drawingPoints, map);
