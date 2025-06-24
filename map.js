@@ -498,10 +498,9 @@ function addDrawingPoint(latlng, map) {
         state.tempLine.setLatLngs(state.drawingPoints);
     }
 
-    if (state.drawingPoints.length >= 3) {
-        // Show confirm button if it exists
-        const confirmBtn = document.getElementById('confirm-zone');
-        if (confirmBtn) confirmBtn.classList.remove('hidden');
+    const minPts = (state.drawingType === 'grens') ? 2 : 3;
+    if (state.drawingPoints.length >= minPts) {
+        document.getElementById('confirm-zone').classList.remove('hidden');
     }
 }
 
@@ -585,13 +584,26 @@ function setupEventHandlers(map) {
         deleteSelectedZone(map);
     });
 
-    document.getElementById("confirm-zone").addEventListener("click", () => {
-        if (state.drawing && state.drawingPoints.length >= 3 && state.drawingType) {
-            createZone(state.drawingType, state.drawingPoints, map);
-            clearDrawing(map);
-            state.drawing = false;
-            state.drawingType = null;
+    document.getElementById('confirm-zone').addEventListener('click', async () => {
+        if (!(state.drawing && state.drawingPoints.length >= 3 && state.drawingType)) return;
+
+        const label = prompt('Naam/label voor deze zone?') || state.drawingType;
+        const zone = createZone(state.drawingType, state.drawingPoints, map);
+        zone.label = label;
+
+        try {
+            const res = await api.saveZone({ type: zone.type, label, latlngs: zone.latlngs });
+            zone.id = res.id;
+            zone.polygon.setPopupContent(`${label}<br>ID ${zone.id}`);
+        } catch (err) {
+            alert('Kon zone niet opslaan!');
+            map.removeLayer(zone.polygon);
+            return;
         }
+
+        clearDrawing(map);
+        state.drawing = false;
+        state.drawingType = null;
     });
 }
 
