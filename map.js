@@ -58,7 +58,7 @@ function initializeMap() {
     setupMapLayers(map);
     setupMapBounds(map);
     setupMapControls(map);
-    
+
     return map;
 }
 
@@ -82,17 +82,17 @@ function setupMapLayers(map) {
 function setupMapBounds(map) {
     const bounds = L.latLngBounds(CONFIG.MAP_BOUNDS);
     map.setMaxBounds(bounds);
-    map.on('drag', function() {
+    map.on('drag', function () {
         map.panInsideBounds(bounds, { animate: false });
     });
 }
 
 function setupMapControls(map) {
     const locate = L.control({ position: 'topleft' });
-    locate.onAdd = function() {
+    locate.onAdd = function () {
         const btn = L.DomUtil.create('button', 'locate-btn');
         btn.innerHTML = 'Locatie';
-        L.DomEvent.on(btn, 'click', function(e) {
+        L.DomEvent.on(btn, 'click', function (e) {
             L.DomEvent.stopPropagation(e);
             map.locate({ setView: true, maxZoom: CONFIG.START_ZOOM });
         });
@@ -100,7 +100,7 @@ function setupMapControls(map) {
     };
     locate.addTo(map);
 
-    map.on('locationfound', function(e) {
+    map.on('locationfound', function (e) {
         if (map._locationMarker) {
             map.removeLayer(map._locationMarker);
         }
@@ -209,7 +209,7 @@ const api = {
         const headers = { ...getAuthHeaders() };
 
         try {
-            const response = await fetch(`${CONFIG.API_URL}/hutjes/${markerId}`, { 
+            const response = await fetch(`${CONFIG.API_URL}/hutjes/${markerId}`, {
                 method: "DELETE",
                 headers
             });
@@ -218,7 +218,22 @@ const api = {
             console.error('Error deleting marker:', error);
             throw error;
         }
-    }
+    },
+
+    async saveZone(zone) {
+        const headers = { ...getAuthHeaders(), 'Content-Type': 'application/json' };
+        return fetch(`${CONFIG.API_URL}/zones`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(zone)
+        }).then(r => r.json());
+    },
+
+    async loadZones() {
+        const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
+        return fetch(`${CONFIG.API_URL}/zones`, { headers })
+            .then(r => r.json());
+    },
 };
 
 // Marker functions
@@ -239,7 +254,7 @@ function createMarkerElement(markerData, map) {
     marker.description = markerData.desc;
     marker.markerData = markerData;
 
-    marker.on('click', function(e) {
+    marker.on('click', function (e) {
         handleMarkerClick(e, marker, markerData, map);
     });
 
@@ -263,7 +278,7 @@ async function editMarker(marker, markerData) {
     }
     const newName = prompt('Nieuwe naam:', markerData.name);
     const newDesc = prompt('Nieuwe beschrijving:', markerData.desc);
-    
+
     if (!newName) return;
 
     const updatedData = {
@@ -274,14 +289,14 @@ async function editMarker(marker, markerData) {
 
     try {
         await api.updateMarker(markerData.id, updatedData);
-        
-        marker.bindTooltip(`${newName} ${markerData.number}`, { 
-            permanent: true, 
-            direction: 'top' 
+
+        marker.bindTooltip(`${newName} ${markerData.number}`, {
+            permanent: true,
+            direction: 'top'
         }).openTooltip();
-        
+
         marker.markerData = updatedData;
-        
+
         // Update in state
         const index = state.markers.findIndex(m => m.id === markerData.id);
         if (index !== -1) {
@@ -294,11 +309,11 @@ async function editMarker(marker, markerData) {
 
 async function deleteMarker(marker, markerData, map) {
     if (!confirm(`Verwijder ${markerData.name} ${markerData.number}?`)) return;
-    
+
     try {
         await api.deleteMarker(markerData.id);
         map.removeLayer(marker);
-        
+
         // Remove from state
         const index = state.markers.findIndex(m => m.id === markerData.id);
         if (index !== -1) {
@@ -320,17 +335,30 @@ async function loadAndDisplayMarkers(map) {
     try {
         const markersData = await api.loadMarkers();
         console.log("Processing markers data:", markersData);
-        
+
         markersData.forEach(markerData => {
             console.log("Creating marker for:", markerData);
             const marker = createMarkerElement(markerData, map);
             state.markers.push(markerData);
         });
-        
+
         console.log(`Loaded ${markersData.length} markers`);
     } catch (error) {
         console.error('Failed to load markers:', error);
         alert('Fout bij het laden van markers');
+    }
+}
+
+async function loadAndDisplayZones(map) {
+    try {
+        const zones = await api.loadZones();
+        zones.forEach(z => {
+            createZone(z.type, z.latlngs, map, z);   // let op extra param!
+        });
+        console.log(`Loaded ${zones.length} zones`);
+    } catch (err) {
+        console.error('Failed to load zones:', err);
+        alert('Fout bij het laden van zones');
     }
 }
 
@@ -343,10 +371,10 @@ async function addNewMarker(event, map) {
 
     const name = prompt('Naam van de hut?');
     if (!name) return;
-    
+
     const number = prompt('Nummer?');
     if (number === null) return;
-    
+
     const desc = prompt('Korte beschrijving?') || '';
 
     const markerData = {
@@ -360,10 +388,10 @@ async function addNewMarker(event, map) {
     try {
         const response = await api.saveMarker(markerData);
         markerData.id = response.id;
-        
+
         const marker = createMarkerElement(markerData, map);
         state.markers.push(markerData);
-        
+
         console.log("New marker added:", markerData);
     } catch (error) {
         console.error('Failed to save marker:', error);
@@ -394,22 +422,22 @@ function createZone(type, latlngs, map) {
         return;
     }
     const poly = L.polygon(latlngs, getZoneStyle(type)).addTo(map);
-    const zone = { 
-        id: state.zoneId++, 
-        type, 
-        polygon: poly, 
-        latlngs: latlngs.slice() 
+    const zone = {
+        id: state.zoneId++,
+        type,
+        polygon: poly,
+        latlngs: latlngs.slice()
     };
-    
-    poly.on('click', function(e) {
+
+    poly.on('click', function (e) {
         L.DomEvent.stopPropagation(e);
         selectZone(zone, map);
         poly.openPopup(e.latlng);
     });
-    
+
     poly.bindPopup(`Type: ${type}<br>ID: ${zone.id}`);
     state.zones.push(zone);
-    
+
     return zone;
 }
 
@@ -417,26 +445,26 @@ function selectZone(zone, map) {
     deselectZone(map);
     state.selectedZone = zone;
     document.getElementById('delete-zone').classList.remove('hidden');
-    
+
     zone.latlngs = zone.polygon.getLatLngs()[0];
     zone.latlngs.forEach((latlng, idx) => {
         const handle = L.marker(latlng, {
             draggable: true,
             icon: L.divIcon({ className: 'vertex-handle' })
         }).addTo(map);
-        
+
         handle.on('drag', ev => {
             zone.latlngs[idx] = ev.target.getLatLng();
             zone.polygon.setLatLngs(zone.latlngs);
         });
-        
+
         state.editHandles.push(handle);
     });
 }
 
 function deselectZone(map) {
     if (!state.selectedZone) return;
-    
+
     state.editHandles.forEach(h => map.removeLayer(h));
     state.editHandles = [];
     document.getElementById('delete-zone').classList.add('hidden');
@@ -449,7 +477,7 @@ function deleteSelectedZone(map) {
         return;
     }
     if (!state.selectedZone) return;
-    
+
     map.removeLayer(state.selectedZone.polygon);
     state.zones.splice(state.zones.indexOf(state.selectedZone), 1);
     deselectZone(map);
@@ -460,13 +488,13 @@ function addDrawingPoint(latlng, map) {
     const marker = L.circleMarker(latlng, { radius: 4 }).addTo(map);
     state.tempMarkers.push(marker);
     state.drawingPoints.push(latlng);
-    
+
     if (!state.tempLine) {
         state.tempLine = L.polyline(state.drawingPoints, { dashArray: '4,4' }).addTo(map);
     } else {
         state.tempLine.setLatLngs(state.drawingPoints);
     }
-    
+
     if (state.drawingPoints.length >= 3) {
         // Show confirm button if it exists
         const confirmBtn = document.getElementById('confirm-zone');
@@ -477,12 +505,12 @@ function addDrawingPoint(latlng, map) {
 function clearDrawing(map) {
     state.tempMarkers.forEach(m => map.removeLayer(m));
     state.tempMarkers = [];
-    
+
     if (state.tempLine) {
         map.removeLayer(state.tempLine);
         state.tempLine = null;
     }
-    
+
     state.drawingPoints = [];
 
     const confirmBtn = document.getElementById('confirm-zone');
@@ -492,7 +520,7 @@ function clearDrawing(map) {
 // Event handlers
 function setupEventHandlers(map) {
     // Map click handler
-    map.on('click', function(e) {
+    map.on('click', function (e) {
         if (state.drawing) {
             addDrawingPoint(e.latlng, map);
             return;
@@ -543,7 +571,7 @@ function setupEventHandlers(map) {
 
     document.getElementById("zone-types").addEventListener("click", e => {
         if (e.target.tagName !== 'BUTTON') return;
-        
+
         state.drawing = true;
         state.drawingType = e.target.dataset.type;
         document.getElementById("zone-types").classList.add("hidden");
@@ -558,7 +586,7 @@ function setupEventHandlers(map) {
         if (state.drawing && state.drawingPoints.length >= 3 && state.drawingType) {
             createZone(state.drawingType, state.drawingPoints, map);
             clearDrawing(map);
-            state.drawing     = false;
+            state.drawing = false;
             state.drawingType = null;
         }
     });
@@ -567,19 +595,19 @@ function setupEventHandlers(map) {
 // Main initialization
 async function init() {
     console.log("Initializing map application...");
-    
+
     // Test API connection first
     const apiConnected = await api.testConnection();
     if (!apiConnected) {
         console.error("API connection failed - markers will not load");
     }
-    
+
     const map = initializeMap();
     setupEventHandlers(map);
-    
+
     console.log("Loading markers...");
     await loadAndDisplayMarkers(map);
-    
+
     console.log("Map application initialized successfully");
 }
 
