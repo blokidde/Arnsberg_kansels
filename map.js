@@ -108,141 +108,104 @@ function setupMapControls(map) {
     });
 }
 
-// API functions
+async function apiFetch(url, options = {}) {
+    const res = await fetch(url, options);
+
+    if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("username");
+        alert("Je sessie is verlopen – log opnieuw in.");
+        document.dispatchEvent(new CustomEvent("userLoggedOut"));
+        throw new Error("Unauthorized");
+    }
+    return res;
+}
+
 const api = {
     async testConnection() {
-        console.log("Testing API connection...");
         const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
-
         try {
-            const response = await fetch(`${CONFIG.API_URL}/test-db`, { headers });
-            console.log("Response status:", response.status);
-
-            if (!response.ok) {
-                console.error("API connection test failed: HTTP status", response.status);
-                return false;
-            }
-
-            const text = await response.text();
-            try {
-                const data = JSON.parse(text);
-                console.log("API connection test succeeded:", data);
-                return true;
-            } catch (error) {
-                console.error("API connection test failed: Invalid JSON response", error);
-                console.log("Raw response:", text);
-                return false;
-            }
-        } catch (error) {
-            console.error("API connection test failed:", error);
+            const res = await apiFetch(`${CONFIG.API_URL}/test-db`, { headers });
+            const text = await res.text();
+            console.log("API connection test succeeded:", JSON.parse(text));
+            return true;
+        } catch (err) {
+            console.error("API connection test failed:", err);
             return false;
         }
     },
 
     async saveMarker(markerData) {
         const headers = { ...getAuthHeaders(), "Content-Type": "application/json" };
-
-        try {
-            const response = await fetch(`${CONFIG.API_URL}/hutjes`, {
-                method: "POST",
-                headers,
-                body: JSON.stringify(markerData)
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Error saving marker:', error);
-            throw error;
-        }
+        const res = await apiFetch(`${CONFIG.API_URL}/hutjes`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(markerData)
+        });
+        return res.json();
     },
 
     async loadMarkers() {
-        console.log("Loading markers from API...");
         const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
-
-        try {
-            const response = await fetch(`${CONFIG.API_URL}/hutjes`, { headers });
-            console.log("Response status:", response.status);
-            console.log("Response headers:", response.headers);
-
-            if (!response.ok) {
-                console.error("Error loading markers: HTTP status", response.status);
-                return [];
-            }
-
-            const text = await response.text();
-            try {
-                const data = JSON.parse(text);
-                console.log("Processing markers data:", data);
-                return data;
-            } catch (error) {
-                console.error("Error loading markers: Invalid JSON response", error);
-                console.log("Raw response:", text);
-                return [];
-            }
-        } catch (error) {
-            console.error("Error loading markers:", error);
-            return [];
-        }
+        const res = await apiFetch(`${CONFIG.API_URL}/hutjes`, { headers });
+        return res.json();                 // [] bij geen records
     },
 
     async updateMarker(markerId, markerData) {
         const headers = { ...getAuthHeaders(), "Content-Type": "application/json" };
-
-        try {
-            const response = await fetch(`${CONFIG.API_URL}/hutjes/${markerId}`, {
-                method: "PUT",
-                headers,
-                body: JSON.stringify(markerData)
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Error updating marker:', error);
-            throw error;
-        }
+        const res = await apiFetch(`${CONFIG.API_URL}/hutjes/${markerId}`, {
+            method: "PUT",
+            headers,
+            body: JSON.stringify(markerData)
+        });
+        return res.json();
     },
 
     async deleteMarker(markerId) {
-        if (!isLoggedIn()) {
-            showLoginError();
-            return;
-        }
         const headers = { ...getAuthHeaders() };
-
-        try {
-            const response = await fetch(`${CONFIG.API_URL}/hutjes/${markerId}`, {
-                method: "DELETE",
-                headers
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Error deleting marker:', error);
-            throw error;
-        }
+        const res = await apiFetch(`${CONFIG.API_URL}/hutjes/${markerId}`, {
+            method: "DELETE",
+            headers
+        });
+        return res.json();
     },
 
     async saveZone(zone) {
-        const headers = { ...getAuthHeaders(), 'Content-Type': 'application/json' };
-        return fetch(`${CONFIG.API_URL}/zones`, {
-            method: 'POST',
+        const headers = { ...getAuthHeaders(), "Content-Type": "application/json" };
+        const res = await apiFetch(`${CONFIG.API_URL}/zones`, {
+            method: "POST",
             headers,
             body: JSON.stringify(zone)
-        }).then(r => r.json());
+        });
+        return res.json();
     },
 
     async loadZones() {
         const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
-        return fetch(`${CONFIG.API_URL}/zones`, { headers })
-            .then(r => r.json());
+        const res = await apiFetch(`${CONFIG.API_URL}/zones`, { headers });
+        return res.json();
     },
 
-    async deleteZone(id) {
+    async updateZone(zoneId, zoneData) {
+        const headers = { ...getAuthHeaders(), "Content-Type": "application/json" };
+        const res = await apiFetch(`${CONFIG.API_URL}/zones/${zoneId}`, {
+            method: "PUT",
+            headers,
+            body: JSON.stringify(zoneData)
+        });
+        return res.json();
+    },
+
+    async deleteZone(zoneId) {
         const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
-        return fetch(`${CONFIG.API_URL}/zones/${id}`, {
-            method: 'DELETE',
+        const res = await apiFetch(`${CONFIG.API_URL}/zones/${zoneId}`, {
+            method: "DELETE",
             headers
-        }).then(r => r.json());
+        });
+        return res.json();
     },
 };
+
 
 // Marker functions
 function createMarkerElement(markerData, map) {

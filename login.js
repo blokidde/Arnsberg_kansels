@@ -1,5 +1,17 @@
 const API_URL = "https://461a-2001-1c08-883-4400-f0c3-e205-3254-d3c3.ngrok-free.app";
 
+function isTokenValid() {
+    const token = localStorage.getItem("token");
+    if (!token) return false;
+
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.exp * 1000 > Date.now();   // exp is in ms
+    } catch {
+        return false;
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const showLoginBtn = document.getElementById("show-login-btn");
     const loginBar = document.getElementById("login-bar");
@@ -12,13 +24,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // Helper om UI aan te passen aan loginstatus
     function updateLoginState() {
         const token = localStorage.getItem("token");
-        if (token) {
+        if (isTokenValid()) {
             // Optioneel: decode username uit token, of onthoud hem bij login
             const username = localStorage.getItem("username") || "";
             loginBar.classList.add("hidden");
             loginContainer.classList.add("hidden");
             logoutBar.classList.remove("hidden");
-            loggedInMsg.textContent = ( username ? username : "");
+            loggedInMsg.textContent = (username ? username : "");
         } else {
             loginBar.classList.remove("hidden");
             logoutBar.classList.add("hidden");
