@@ -607,6 +607,7 @@ async function init() {
 
     console.log("Loading markers...");
     await loadAndDisplayMarkers(map);
+    await loadAndDisplayZones(map);
 
     console.log("Map application initialized successfully");
 }
