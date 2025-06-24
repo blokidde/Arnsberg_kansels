@@ -2,14 +2,14 @@
 const CONFIG = {
     API_URL: "https://461a-2001-1c08-883-4400-f0c3-e205-3254-d3c3.ngrok-free.app",
     START_COORDS: [51.4372855, 7.8781002],
-    START_ZOOM: 13,
+    START_ZOOM: 15,
     MAP_BOUNDS: [
         [51.4486358805082, 7.85711288452149], // top left bound
         [51.4462895254982, 7.89839744567871], // top right bound
         [51.4215025017151, 7.89968490600586], // bottom right bound
         [51.4227863001803, 7.85419464111328]  // bottom left bound
     ],
-    MIN_ZOOM: 14,
+    MIN_ZOOM: 15,
     MAX_ZOOM: 17
 };
 
