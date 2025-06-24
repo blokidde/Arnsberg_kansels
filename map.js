@@ -234,6 +234,14 @@ const api = {
         return fetch(`${CONFIG.API_URL}/zones`, { headers })
             .then(r => r.json());
     },
+
+    async deleteZone(id) {
+        const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
+        return fetch(`${CONFIG.API_URL}/zones/${id}`, {
+            method: 'DELETE',
+            headers
+        }).then(r => r.json());
+    },
 };
 
 // Marker functions
@@ -480,16 +488,25 @@ function deselectZone(map) {
     state.selectedZone = null;
 }
 
-function deleteSelectedZone(map) {
+async function deleteSelectedZone(map) {
     if (!isLoggedIn()) {
         showLoginError();
         return;
     }
     if (!state.selectedZone) return;
 
-    map.removeLayer(state.selectedZone.polygon);
-    state.zones.splice(state.zones.indexOf(state.selectedZone), 1);
-    deselectZone(map);
+    const id = state.selectedZone.id;
+    const poly = state.selectedZone.polygon;
+
+    try {
+        await api.deleteZone(id);
+        map.removeLayer(poly);
+        state.zones = state.zones.filter(z => z.id !== id);
+        deselectZone(map);
+    } catch (err) {
+        alert("Fout bij verwijderen zone uit database");
+        console.error(err);
+    }
 }
 
 // Drawing functions
