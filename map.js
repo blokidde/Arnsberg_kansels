@@ -421,10 +421,13 @@ function createZone(type, latlngs, map) {
         showLoginError();
         return;
     }
-    const poly = L.polygon(latlngs, getZoneStyle(type)).addTo(map);
+    const poly = (type === 'grens')
+        ? L.polyline(latlngs, getZoneStyle(type)).addTo(map)
+        : L.polygon(latlngs, getZoneStyle(type)).addTo(map);
     const zone = {
-        id: state.zoneId++,
+        id: (arguments.length === 4 && arguments[3].id) ? arguments[3].id : null,
         type,
+        label: (arguments.length === 4 && arguments[3].label) || '',
         polygon: poly,
         latlngs: latlngs.slice()
     };
