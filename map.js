@@ -381,7 +381,7 @@ function getZoneStyle(type) {
         case 'bos':
             return { color: 'green', fillColor: 'green', fillOpacity: 0.5 };
         case 'grens':
-            return { color: 'red', fillOpacity: 0, dashArray: '5,5' };
+            return { color: 'red', weight: 3, fillOpacity: 0 };
         default:
             return { color: 'blue', fillColor: 'blue', fillOpacity: 0.3 };
     }
@@ -426,16 +426,25 @@ function selectZone(zone, map) {
     state.selectedZone = zone;
     document.getElementById('delete-zone').classList.remove('hidden');
 
-    zone.latlngs = zone.polygon.getLatLngs()[0];
+    const polyLL = zone.polygon.getLatLngs();
+    zone.latlngs = (zone.type === 'grens') ? polyLL : polyLL[0];
     zone.latlngs.forEach((latlng, idx) => {
         const handle = L.marker(latlng, {
             draggable: true,
             icon: L.divIcon({ className: 'vertex-handle' })
         }).addTo(map);
 
-        handle.on('drag', ev => {
-            zone.latlngs[idx] = ev.target.getLatLng();
-            zone.polygon.setLatLngs(zone.latlngs);
+        handle.on('dragend', async () => {
+            try {
+                await api.updateZone(zone.id, {
+                    type: zone.type,
+                    label: zone.label,
+                    latlngs: zone.latlngs
+                });
+            } catch (err) {
+                alert('Fout bij opslaan grens-wijziging');
+                console.error(err);
+            }
         });
 
         state.editHandles.push(handle);
