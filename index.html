@@ -49,6 +49,51 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="map.js"></script>
     <script src="login.js"></script>
+    <div id="add-shot-modal" class="hidden modal-backdrop">
+    <div class="modal-box">
+        <h3>Registreer geschoten dier</h3>
 
+        <form id="add-shot-form">
+        <label>
+            Soort&nbsp;dier
+            <input type="text" id="shotSpecies" required>
+        </label>
+
+        <label>
+            Geslacht
+            <select id="shotGender">
+            <option value="">– onbekend –</option>
+            <option value="M">M</option>
+            <option value="F">F</option>
+            </select>
+        </label>
+
+        <label>
+            Gewicht&nbsp;(kg)
+            <input type="number" step="0.1" id="shotWeight">
+        </label>
+
+        <label>
+            Leeftijd&nbsp;(jaren)
+            <input type="number" min="0" id="shotAge">
+        </label>
+
+        <label>
+            Datum&nbsp;+&nbsp;tijd
+            <input type="datetime-local" id="shotTime" required>
+        </label>
+
+        <label>
+            Notities
+            <textarea id="shotNotes" rows="2"></textarea>
+        </label>
+
+        <div class="modal-actions">
+            <button type="submit" id="saveShot">Opslaan</button>
+            <button type="button" id="cancelShot">Annuleren</button>
+        </div>
+        </form>
+    </div>
+    </div>
 </body>
 </html>

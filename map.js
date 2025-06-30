@@ -30,6 +30,8 @@ const state = {
     hutMode: null
 };
 
+let mapGlobal;
+
 function isLoggedIn() {
     return !!localStorage.getItem("token");
 }
@@ -119,6 +121,17 @@ async function apiFetch(url, options = {}) {
         throw new Error("Unauthorized");
     }
     return res;
+}
+
+function openAddShotModal(hutId) {
+    const modal = document.getElementById('add-shot-modal');
+    modal.dataset.hutId = hutId;
+    document.getElementById('shotTime').value = new Date().toISOString().slice(0, 16);
+    modal.classList.remove('hidden');
+}
+function closeAddShotModal() {
+    document.getElementById('add-shot-modal').classList.add('hidden');
+    document.getElementById('add-shot-form').reset();
 }
 
 const api = {
@@ -324,11 +337,11 @@ async function showMarkerPopup(event, markerData, map) {
 
         const listHtml = schoten.length
             ? `<ul>${schoten.map(s =>
-                    `<li>${new Date(s.shot_at)
-                        .toLocaleString('nl-NL', { dateStyle:'short', timeStyle:'short' })}
+                `<li>${new Date(s.shot_at)
+                    .toLocaleString('nl-NL', { dateStyle: 'short', timeStyle: 'short' })}
                      – ${s.soort}
                      ${s.geslacht || ''}${s.gewicht_kg ? `, ${s.gewicht_kg} kg` : ''}</li>`).join('')
-               }</ul>`
+            }</ul>`
             : '<em>Geen schoten geregistreerd</em>';
 
         const container = popup.getElement();
@@ -582,47 +595,9 @@ function setupEventHandlers(map) {
         const btn = container.querySelector('.add-shot-btn');
         if (!btn) return;
 
-        btn.addEventListener('click', async () => {
-            const hutId = btn.dataset.hutId;
-
-            const soort = prompt('Soort dier (bijv. wildzwijn):');
-            const geslacht = prompt('Geslacht (M of F):');
-            const gewicht = prompt('Gewicht in kg:');
-            const leeftijd = prompt('Leeftijd in jaren:');
-            const notities = prompt('Notities (optioneel):');
-            let shot_at = prompt('Wanneer? (voorbeeld: 2025-06-30T21:30)');
-            if (!shot_at) {
-                alert('Geen tijd opgegeven.');
-                return;
-            }
-
-            const payload = {
-                hut_id: parseInt(hutId, 10),
-                soort,
-                geslacht,
-                gewicht_kg: gewicht ? parseFloat(gewicht) : null,
-                leeftijd_jr: leeftijd ? parseInt(leeftijd, 10) : null,
-                notities,
-                shot_at
-            };
-
-            try {
-                const res = await fetch(`${CONFIG.API_URL}/schoten`, {
-                    method: 'POST',
-                    headers: {
-                        ...getAuthHeaders(),
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload)
-                });
-                if (!res.ok) throw new Error(await res.text());
-                alert('Schot succesvol toegevoegd!');
-                map.closePopup();
-            } catch (err) {
-                console.error(err);
-                alert('Fout bij toevoegen schot: ' + err.message);
-            }
-        });
+        btn.addEventListener('click', () => {
+            openAddShotModal(btn.dataset.hutId);
+        }, { once: true });
     });
 
     // UI event handlers
@@ -688,6 +663,41 @@ function setupEventHandlers(map) {
         state.drawing = false;
         state.drawingType = null;
     });
+
+    document.getElementById('cancelShot').addEventListener('click', closeAddShotModal);
+
+    document.getElementById('add-shot-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const hutId = parseInt(document.getElementById('add-shot-modal').dataset.hutId, 10);
+
+        const payload = {
+            hut_id: hutId,
+            soort: document.getElementById('shotSpecies').value,
+            geslacht: document.getElementById('shotGender').value || null,
+            gewicht_kg: parseFloat(document.getElementById('shotWeight').value) || null,
+            leeftijd_jr: parseInt(document.getElementById('shotAge').value) || null,
+            notities: document.getElementById('shotNotes').value || null,
+            shot_at: document.getElementById('shotTime').value
+        };
+
+        try {
+            const res = await fetch(`${CONFIG.API_URL}/schoten`, {
+                method: 'POST',
+                headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error(await res.text());
+            closeAddShotModal();
+            alert("Schot opgeslagen!");
+            const marker = state.markers.find(m => m.id === hutId);
+            if (marker) {
+                const latlng = L.latLng(marker.lat, marker.lng);
+                showMarkerPopup({ latlng }, marker, mapGlobal);
+            }
+        } catch (err) {
+            alert("Fout bij opslaan: " + err.message);
+        }
+    });
 }
 
 // Main initialization
@@ -701,6 +711,7 @@ async function init() {
     }
 
     const map = initializeMap();
+    mapGlobal = map;
     setupEventHandlers(map);
 
     console.log("Loading markers...");
