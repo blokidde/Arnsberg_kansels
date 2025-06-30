@@ -556,13 +556,16 @@ function setupEventHandlers(map) {
         btn.addEventListener('click', async () => {
             const hutId = btn.dataset.hutId;
 
-            // vragen aan gebruiker
             const soort = prompt('Soort dier (bijv. wildzwijn):');
             const geslacht = prompt('Geslacht (M of F):');
             const gewicht = prompt('Gewicht in kg:');
             const leeftijd = prompt('Leeftijd in jaren:');
             const notities = prompt('Notities (optioneel):');
-            const shot_at = new Date().toISOString();
+            let shot_at = prompt('Wanneer? (voorbeeld: 2025-06-30T21:30)');
+            if (!shot_at) {
+                alert('Geen tijd opgegeven.');
+                return;
+            }
 
             const payload = {
                 hut_id: parseInt(hutId, 10),
