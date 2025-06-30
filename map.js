@@ -204,6 +204,13 @@ const api = {
         });
         return res.json();
     },
+
+    async loadSchoten(hutId) {
+        const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
+        const url = `${CONFIG.API_URL}/schoten?hut_id=${hutId}`;
+        const res = await apiFetch(url, { headers });
+        return res.json();          // [{soort, geslacht, gewicht_kg, ...}, …]
+    },
 };
 
 
@@ -295,21 +302,43 @@ async function deleteMarker(marker, markerData, map) {
     }
 }
 
-function showMarkerPopup(event, markerData, map) {
+async function showMarkerPopup(event, markerData, map) {
     const addShotBtn = isLoggedIn()
         ? `<br><button class="add-shot-btn" data-hut-id="${markerData.id}">
-               voeg dier toe
+               Voeg dier toe
            </button>`
         : '';
 
-    L.popup()
+    const popup = L.popup()
         .setLatLng(event.latlng)
         .setContent(`
             <strong>${markerData.name} ${markerData.number}</strong><br>
             ${markerData.desc}
+            <div id="shot-list">laden …</div>
             ${addShotBtn}
         `)
         .openOn(map);
+
+    try {
+        const schoten = await api.loadSchoten(markerData.id);
+
+        const listHtml = schoten.length
+            ? `<ul>${schoten.map(s =>
+                    `<li>${new Date(s.shot_at)
+                        .toLocaleString('nl-NL', { dateStyle:'short', timeStyle:'short' })}
+                     – ${s.soort}
+                     ${s.geslacht || ''}${s.gewicht_kg ? `, ${s.gewicht_kg} kg` : ''}</li>`).join('')
+               }</ul>`
+            : '<em>Geen schoten geregistreerd</em>';
+
+        const container = popup.getElement();
+        container.querySelector('#shot-list').innerHTML = listHtml;
+    } catch (err) {
+        const container = popup.getElement();
+        container.querySelector('#shot-list').innerHTML =
+            '<em style="color:red">Kon lijst niet laden</em>';
+        console.error(err);
+    }
 }
 
 async function loadAndDisplayMarkers(map) {
