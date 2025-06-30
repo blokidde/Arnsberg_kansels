@@ -296,9 +296,19 @@ async function deleteMarker(marker, markerData, map) {
 }
 
 function showMarkerPopup(event, markerData, map) {
+    const addShotBtn = isLoggedIn()
+        ? `<br><button class="add-shot-btn" data-hut-id="${markerData.id}">
+               voeg dier toe
+           </button>`
+        : '';
+
     L.popup()
         .setLatLng(event.latlng)
-        .setContent(`<strong>${markerData.name} ${markerData.number}</strong><br>${markerData.desc}`)
+        .setContent(`
+            <strong>${markerData.name} ${markerData.number}</strong><br>
+            ${markerData.desc}
+            ${addShotBtn}
+        `)
         .openOn(map);
 }
 
