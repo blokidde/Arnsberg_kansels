@@ -548,6 +548,51 @@ function setupEventHandlers(map) {
         document.body.classList.add(`zoom-${zoom}`);
     });
 
+    map.on('popupopen', (e) => {
+        const container = e.popup.getElement();
+        const btn = container.querySelector('.add-shot-btn');
+        if (!btn) return;
+
+        btn.addEventListener('click', async () => {
+            const hutId = btn.dataset.hutId;
+
+            // vragen aan gebruiker
+            const soort = prompt('Soort dier (bijv. wildzwijn):');
+            const geslacht = prompt('Geslacht (M of F):');
+            const gewicht = prompt('Gewicht in kg:');
+            const leeftijd = prompt('Leeftijd in jaren:');
+            const notities = prompt('Notities (optioneel):');
+            const shot_at = new Date().toISOString();
+
+            const payload = {
+                hut_id: parseInt(hutId, 10),
+                soort,
+                geslacht,
+                gewicht_kg: gewicht ? parseFloat(gewicht) : null,
+                leeftijd_jr: leeftijd ? parseInt(leeftijd, 10) : null,
+                notities,
+                shot_at
+            };
+
+            try {
+                const res = await fetch(`${CONFIG.API_URL}/schoten`, {
+                    method: 'POST',
+                    headers: {
+                        ...getAuthHeaders(),
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error(await res.text());
+                alert('Schot succesvol toegevoegd!');
+                map.closePopup();
+            } catch (err) {
+                console.error(err);
+                alert('Fout bij toevoegen schot: ' + err.message);
+            }
+        });
+    });
+
     // UI event handlers
     console.log("Edit toggle geladen");
     document.getElementById("toggle-edit").addEventListener("click", () => {
