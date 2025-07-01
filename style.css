@@ -1,3 +1,8 @@
+/* =================================
+   GLOBAL STYLES
+   ================================= */
+
+/* Basic reset and global styling */
 html, body {
     height: 100%;
     margin: 0;
@@ -5,15 +10,22 @@ html, body {
     background: #f7fafc;
 }
 
+/* Full-screen map container */
 #map {
     width: 100%;
     height: 100dvh;
 }
 
+/* Enable touch controls for mobile */
 .leaflet-container {
     touch-action: none;
 }
 
+/* =================================
+   MAP CONTROLS & LEGEND
+   ================================= */
+
+/* Map legend styling */
 .legend {
     background: white;
     padding: 6px 12px;
@@ -22,6 +34,7 @@ html, body {
     border-radius: 6px;
 }
 
+/* Legend color indicators */
 .legend i {
     width: 18px;
     height: 18px;
@@ -31,6 +44,7 @@ html, body {
     border-radius: 5px;
 }
 
+/* Location button styling */
 .locate-btn {
     background: white;
     padding: 7px 15px;
@@ -45,6 +59,11 @@ html, body {
     background: #f1f6fa;
 }
 
+/* =================================
+   CONTROL PANELS
+   ================================= */
+
+/* Bottom control panel for zone options */
 #control-panel {
     position: fixed;
     bottom: 0;
@@ -61,20 +80,28 @@ html, body {
     box-shadow: 0 -2px 12px rgba(60,80,120,0.05);
 }
 
+/* Zone option buttons spacing */
 #zone-options button {
     margin-right: 6px;
 }
 
+/* Zone type selection layout */
 #zone-types {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
+/* =================================
+   DRAWING & EDITING
+   ================================= */
+
+/* Hide elements utility class */
 .hidden {
     display: none !important;
 }
 
+/* Vertex editing handles for zone boundaries */
 .vertex-handle {
     width: 12px;
     height: 12px;
@@ -87,6 +114,11 @@ html, body {
     background: #43a047;
 }
 
+/* =================================
+   FLOATING MENU
+   ================================= */
+
+/* Main floating menu container */
 #floating-menu {
     position: fixed;
     top: 16px;
@@ -102,6 +134,7 @@ html, body {
     border: 1.5px solid #e3eaf2;
 }
 
+/* Floating menu button styling */
 #floating-menu button {
     margin-bottom: 4px;
     cursor: pointer;
@@ -119,22 +152,30 @@ html, body {
     color: #10427a;
 }
 
+/* Edit options container */
 #edit-options {
     display: flex;
     flex-direction: column;
     gap: 7px;
 }
 
+/* =================================
+   LEGEND COMPONENTS
+   ================================= */
+
+/* Legend box styling */
 #legend-box {
     font: 14px Arial;
 }
 
+/* Individual legend items */
 .legend-item {
     display: flex;
     align-items: center;
     margin-bottom: 4px;
 }
 
+/* Legend item color indicators */
 .legend-item i {
     width: 16px;
     height: 16px;
@@ -144,6 +185,11 @@ html, body {
     border-radius: 4px;
 }
 
+/* =================================
+   MAP TOOLTIPS
+   ================================= */
+
+/* Custom tooltip styling for markers */
 .leaflet-tooltip {
     background: transparent;
     border: none;
@@ -156,12 +202,14 @@ html, body {
     text-shadow: 0 0 4px #000, 0 0 2px #333;
 }
 
+/* Responsive tooltip font sizes based on zoom level */
 .zoom-13 .leaflet-tooltip { font-size: 7px;  }
 .zoom-14 .leaflet-tooltip { font-size: 8px;  }
 .zoom-15 .leaflet-tooltip { font-size: 9px; }
 .zoom-16 .leaflet-tooltip { font-size: 10px; }
 .zoom-17 .leaflet-tooltip { font-size: 11px; }
 
+/* Hide tooltip arrows */
 .leaflet-tooltip-top::before,
 .leaflet-tooltip-bottom::before,
 .leaflet-tooltip-left::before,
@@ -169,6 +217,11 @@ html, body {
     display: none !important;
 }
 
+/* =================================
+   AUTHENTICATION UI
+   ================================= */
+
+/* Login bar positioning and styling */
 #login-bar {
     position: fixed;
     left: 12px;
@@ -179,12 +232,13 @@ html, body {
     box-shadow: none;
     border-radius: 10px;
     padding: 0;
-    z-index: 2200;  /* Hoger dan de map, lager dan floating-menu */
+    z-index: 2200;  /* Higher than map, lower than floating-menu */
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
+/* Logout bar styling */
 #logout-bar {
     position: fixed;
     left: 12px;
@@ -195,12 +249,13 @@ html, body {
     box-shadow: none;
     border-radius: 10px;
     padding-left: 14px;
-    z-index: 2200;  /* Hoger dan de map, lager dan floating-menu */
+    z-index: 2200;  /* Higher than map, lower than floating-menu */
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
+/* Login/logout button styling */
 #login-bar button, #logout-bar button {
     background: none;
     border: none;
@@ -219,7 +274,7 @@ html, body {
     text-decoration: underline;
 }
 
-
+/* Username display in logout bar */
 #logout-bar span {
     color: #222;
     font-size: 1rem;
@@ -227,7 +282,11 @@ html, body {
     margin-right: 8px;
 }
 
-/* Login-popup basic maar netjes */
+/* =================================
+   LOGIN FORM
+   ================================= */
+
+/* Login popup container */
 #login-container {
     position: fixed;
     left: 16px;
@@ -243,6 +302,8 @@ html, body {
     flex-direction: column;
     gap: 9px;
 }
+
+/* Login form input styling */
 #login-container input {
     padding: 8px 10px;
     margin-bottom: 4px;
@@ -256,6 +317,8 @@ html, body {
     outline: none;
     border: 1.2px solid #43a047;
 }
+
+/* Login form button styling */
 #login-container button {
     background: #43a047;
     color: #fff;
@@ -272,6 +335,27 @@ html, body {
     transform: scale(1.03);
 }
 
+/* Switch between login/register link */
+.switch-link {
+  display: inline-block;
+  margin-top: 8px;
+  color: #007BFF;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
+
+.switch-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+/* =================================
+   SCROLLBAR STYLING
+   ================================= */
+
+/* Custom scrollbar for webkit browsers */
 ::-webkit-scrollbar {
     width: 7px;
     background: #e3eaf2;
@@ -280,12 +364,20 @@ html, body {
     background: #bbdefb;
     border-radius: 8px;
 }
+
+/* =================================
+   MODAL COMPONENTS
+   ================================= */
+
+/* Modal backdrop overlay */
 .modal-backdrop {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.45);
     display: flex; justify-content: center; align-items: center;
     z-index: 4000;
 }
+
+/* Modal content box */
 .modal-box {
     background: #fff;
     padding: 18px 22px;
@@ -294,13 +386,25 @@ html, body {
     max-width: 320px; width: 90%;
     display: flex; flex-direction: column; gap: 10px;
 }
+
+/* Form labels in modals */
 #add-shot-form label { display:flex; flex-direction:column; gap:4px; font-size:0.95rem; }
+
+/* Form inputs in modals */
 #add-shot-form input, #add-shot-form select, #add-shot-form textarea {
     padding: 6px 8px; border:1px solid #c5d5e1; border-radius:5px; font-size:1rem;
 }
+
+/* Modal action buttons container */
 .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:8px; }
+
+/* Modal action button styling */
 .modal-actions button { padding:6px 14px; border:none; border-radius:6px; cursor:pointer; }
+
+/* Specific button colors */
 #saveShot   { background:#43a047; color:#fff; }
 #cancelShot { background:#eeeeee; }
+
+/* Utility class for hiding elements */
 .hidden { display:none !important; }
 
