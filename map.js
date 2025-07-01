@@ -338,7 +338,7 @@ async function editMarker(marker, markerData) {
         showLoginError();
         return;
     }
-    
+
     // Get new values from user
     const newName = prompt('Nieuwe naam:', markerData.name);
     const newDesc = prompt('Nieuwe beschrijving:', markerData.desc);
@@ -476,18 +476,29 @@ async function loadAndDisplayZones(map) {
 
 // Add new marker to map at clicked location
 async function addNewMarker(event, map) {
+    // Check if user is logged in
     if (!isLoggedIn()) {
         showLoginError();
         return;
     }
+
+    // Only allow adding marker in correct mode
     if (state.hutMode !== "add") return;
 
-    // Get marker information from user
+    // Ask user for marker details
     const name = prompt('Naam van de hut?');
-    if (!name) return;
+    if (!name) {
+        state.hutMode = null;         // Reset mode if user cancels
+        highlightModeButtons();
+        return;
+    }
 
     const number = prompt('Nummer?');
-    if (number === null) return;
+    if (number === null) {
+        state.hutMode = null;
+        highlightModeButtons();
+        return;
+    }
 
     const desc = prompt('Korte beschrijving?') || '';
 
@@ -501,11 +512,11 @@ async function addNewMarker(event, map) {
     };
 
     try {
-        // Save to database
+        // Save to backend database
         const response = await api.saveMarker(markerData);
         markerData.id = response.id;
 
-        // Create visual marker
+        // Create marker on the map
         const marker = createMarkerElement(markerData, map);
         state.markers.push(markerData);
 
@@ -514,7 +525,12 @@ async function addNewMarker(event, map) {
         console.error('Failed to save marker:', error);
         alert('Fout bij het opslaan van de marker');
     }
+
+    // Always reset add mode after attempt
+    state.hutMode = null;
+    highlightModeButtons();
 }
+
 
 /* =================================
    ZONE FUNCTIONS
@@ -585,7 +601,7 @@ function selectZone(zone, map) {
     // Get zone coordinates
     const polyLL = zone.polygon.getLatLngs();
     zone.latlngs = (zone.type === 'grens') ? polyLL : polyLL[0];
-    
+
     // Create drag handles for each vertex
     zone.latlngs.forEach((latlng, idx) => {
         const handle = L.marker(latlng, {
@@ -735,7 +751,7 @@ function setupEventHandlers(map) {
 
     // UI event handlers
     console.log("Edit toggle geladen");
-    
+
     // Toggle edit options menu
     document.getElementById("toggle-edit").addEventListener("click", () => {
         document.getElementById("edit-options").classList.toggle("hidden");
@@ -836,10 +852,10 @@ function setupEventHandlers(map) {
                 body: JSON.stringify(payload)
             });
             if (!res.ok) throw new Error(await res.text());
-            
+
             closeAddShotModal();
             alert("Schot opgeslagen!");
-            
+
             // Refresh marker popup to show new shot
             const marker = state.markers.find(m => m.id === hutId);
             if (marker) {
