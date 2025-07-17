@@ -3,7 +3,8 @@
    ================================= */
 
 /* Basic reset and global styling */
-html, body {
+html,
+body {
     height: 100%;
     margin: 0;
     font-family: Arial, Helvetica, sans-serif;
@@ -53,8 +54,9 @@ html, body {
     border-radius: 7px;
     font-weight: bold;
     transition: background 0.14s, box-shadow 0.18s;
-    box-shadow: 0 1px 5px rgba(60,80,120,0.07);
+    box-shadow: 0 1px 5px rgba(60, 80, 120, 0.07);
 }
+
 .locate-btn:hover {
     background: #f1f6fa;
 }
@@ -77,7 +79,7 @@ html, body {
     padding: 10px 15px;
     border-top: 1.5px solid #e3eaf2;
     backdrop-filter: blur(4px);
-    box-shadow: 0 -2px 12px rgba(60,80,120,0.05);
+    box-shadow: 0 -2px 12px rgba(60, 80, 120, 0.05);
 }
 
 /* Zone option buttons spacing */
@@ -110,6 +112,7 @@ html, body {
     border-radius: 50%;
     transition: background 0.2s;
 }
+
 .vertex-handle:hover {
     background: #43a047;
 }
@@ -130,7 +133,7 @@ html, body {
     background: rgba(255, 255, 255, 0.98);
     padding: 12px 18px;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.13);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.13);
     border: 1.5px solid #e3eaf2;
 }
 
@@ -147,6 +150,7 @@ html, body {
     color: #16569e;
     transition: background 0.18s, color 0.13s;
 }
+
 #floating-menu button:hover {
     background: #bbdefb;
     color: #10427a;
@@ -203,11 +207,25 @@ html, body {
 }
 
 /* Responsive tooltip font sizes based on zoom level */
-.zoom-13 .leaflet-tooltip { font-size: 6px;  }
-.zoom-14 .leaflet-tooltip { font-size: 7px;  }
-.zoom-15 .leaflet-tooltip { font-size: 8px; }
-.zoom-16 .leaflet-tooltip { font-size: 9px; }
-.zoom-17 .leaflet-tooltip { font-size: 10px; }
+.zoom-13 .leaflet-tooltip {
+    font-size: 6px;
+}
+
+.zoom-14 .leaflet-tooltip {
+    font-size: 7px;
+}
+
+.zoom-15 .leaflet-tooltip {
+    font-size: 8px;
+}
+
+.zoom-16 .leaflet-tooltip {
+    font-size: 9px;
+}
+
+.zoom-17 .leaflet-tooltip {
+    font-size: 10px;
+}
 
 /* Hide tooltip arrows */
 .leaflet-tooltip-top::before,
@@ -232,7 +250,8 @@ html, body {
     box-shadow: none;
     border-radius: 10px;
     padding: 0;
-    z-index: 2200;  /* Higher than map, lower than floating-menu */
+    z-index: 2200;
+    /* Higher than map, lower than floating-menu */
     display: flex;
     align-items: center;
     gap: 10px;
@@ -249,14 +268,16 @@ html, body {
     box-shadow: none;
     border-radius: 10px;
     padding-left: 14px;
-    z-index: 2200;  /* Higher than map, lower than floating-menu */
+    z-index: 2200;
+    /* Higher than map, lower than floating-menu */
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
 /* Login/logout button styling */
-#login-bar button, #logout-bar button {
+#login-bar button,
+#logout-bar button {
     background: none;
     border: none;
     color: #184080;
@@ -269,7 +290,9 @@ html, body {
     cursor: pointer;
     transition: color 0.13s, text-decoration 0.13s;
 }
-#login-bar button:hover, #logout-bar button:hover {
+
+#login-bar button:hover,
+#logout-bar button:hover {
     color: #156c1d;
     text-decoration: underline;
 }
@@ -296,7 +319,7 @@ html, body {
     background: white;
     padding: 15px 22px 14px 22px;
     border-radius: 10px;
-    box-shadow: 0 2px 14px rgba(0,0,0,0.11);
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.11);
     border: 1.5px solid #e3eaf2;
     display: flex;
     flex-direction: column;
@@ -313,6 +336,7 @@ html, body {
     font-size: 1rem;
     transition: border 0.16s;
 }
+
 #login-container input:focus {
     outline: none;
     border: 1.2px solid #43a047;
@@ -328,8 +352,9 @@ html, body {
     font-weight: 600;
     font-size: 1rem;
     transition: background 0.15s, transform 0.11s;
-    box-shadow: 0 1.5px 6px rgba(40,70,180,0.07);
+    box-shadow: 0 1.5px 6px rgba(40, 70, 180, 0.07);
 }
+
 #login-container button:hover {
     background: #2e7031;
     transform: scale(1.03);
@@ -337,13 +362,13 @@ html, body {
 
 /* Switch between login/register link */
 .switch-link {
-  background-color: transparent;
-  border: none;
-  color: #007BFF;
-  font-size: 0.95rem;
-  cursor: pointer;
-  text-decoration: underline;
-  padding: 0;
+    background-color: transparent;
+    border: none;
+    color: #007BFF;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
 }
 
 /* =================================
@@ -355,6 +380,7 @@ html, body {
     width: 7px;
     background: #e3eaf2;
 }
+
 ::-webkit-scrollbar-thumb {
     background: #bbdefb;
     border-radius: 8px;
@@ -366,9 +392,12 @@ html, body {
 
 /* Modal backdrop overlay */
 .modal-backdrop {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.45);
-    display: flex; justify-content: center; align-items: center;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
     z-index: 4000;
 }
 
@@ -377,31 +406,84 @@ html, body {
     background: #fff;
     padding: 18px 22px;
     border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.18);
-    max-width: 320px; width: 90%;
-    display: flex; flex-direction: column; gap: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+    max-width: 320px;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Form styling voor zichtwaarnemingen */
+#sighting-modal label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.95rem;
+}
+
+#sighting-modal input,
+#sighting-modal select,
+#sighting-modal textarea {
+    padding: 6px 8px;
+    border: 1px solid #c5d5e1;
+    border-radius: 5px;
+    font-size: 1rem;
+    background: #fff;
+}
+
+#sightingBack {
+    background: #eeeeee;
 }
 
 /* Form labels in modals */
-#add-shot-form label { display:flex; flex-direction:column; gap:4px; font-size:0.95rem; }
+#add-shot-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.95rem;
+}
 
 /* Form inputs in modals */
-#add-shot-form input, #add-shot-form select, #add-shot-form textarea {
-    padding: 6px 8px; border:1px solid #c5d5e1; border-radius:5px; font-size:1rem;
+#add-shot-form input,
+#add-shot-form select,
+#add-shot-form textarea {
+    padding: 6px 8px;
+    border: 1px solid #c5d5e1;
+    border-radius: 5px;
+    font-size: 1rem;
 }
 
 /* Modal action buttons container */
-.modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:8px; }
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
+}
 
 /* Modal action button styling */
-.modal-actions button { padding:6px 14px; border:none; border-radius:6px; cursor:pointer; }
+.modal-actions button {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
 
 /* Specific button colors */
-#saveShot   { background:#43a047; color:#fff; }
-#cancelShot { background:#eeeeee; }
+#saveShot {
+    background: #43a047;
+    color: #fff;
+}
+
+#cancelShot {
+    background: #eeeeee;
+}
 
 /* Utility class for hiding elements */
-.hidden { display:none !important; }
+.hidden {
+    display: none !important;
+}
 
 #leaderboard-list {
     list-style: none;

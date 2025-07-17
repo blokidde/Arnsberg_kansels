@@ -92,7 +92,14 @@
     <div id="sighting-modal" class="hidden modal-backdrop">
         <div class="modal-box">
             <h3>Wat heb je gezien?</h3>
-            <label>Soort dier <input type="text" id="seenSpecies" required></label>
+            <label>
+                Soort dier
+                <select id="seenSpecies" required>
+                    <option value="zwijn">Zwijn</option>
+                    <option value="wasbeer">Wasbeer</option>
+                    <option value="vos">Vos</option>
+                </select>
+            </label>
             <label>Aantal dieren <input type="number" id="seenCount" min="1"></label>
             <label>Mannetjes <input type="number" id="seenMales" min="0"></label>
             <label>Vrouwtjes <input type="number" id="seenFemales" min="0"></label>
@@ -113,9 +120,9 @@
                 <label>
                     Soort&nbsp;dier
                     <select id="shotSpecies" required>
-                        <option value="vos">Zwijn</option>
+                        <option value="zwijn">Zwijn</option>
                         <option value="wasbeer">Wasbeer</option>
-                        <option value="zwijn">Vos</option>
+                        <option value="vos">Vos</option>
                     </select>
                 </label>
 
@@ -149,6 +156,7 @@
                 </label>
 
                 <div class="modal-actions">
+                    <button type="button" id="sightingBack">Terug</button>
                     <button type="submit" id="saveShot">Opslaan</button>
                     <button type="button" id="cancelShot">Annuleren</button>
                 </div>
