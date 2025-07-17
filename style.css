@@ -403,3 +403,14 @@ html, body {
 /* Utility class for hiding elements */
 .hidden { display:none !important; }
 
+#leaderboard-list {
+    list-style: none;
+    padding-left: 0;
+    font-size: 0.95rem;
+    margin: 10px 0;
+}
+
+#leaderboard-list li {
+    margin-bottom: 6px;
+    font-weight: bold;
+}

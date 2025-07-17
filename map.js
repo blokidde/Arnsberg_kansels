@@ -866,6 +866,32 @@ function setupEventHandlers(map) {
             alert("Fout bij opslaan: " + err.message);
         }
     });
+
+    document.getElementById("show-leaderboard").addEventListener("click", async () => {
+        const modal = document.getElementById("leaderboard-modal");
+        const list = document.getElementById("leaderboard-list");
+        list.innerHTML = "<li>Laden…</li>";
+        modal.classList.remove("hidden");
+
+        try {
+            const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
+            const res = await apiFetch(`${CONFIG.API_URL}/leaderboard`, { headers });
+            const data = await res.json();
+            list.innerHTML = "";
+            data.forEach((entry, i) => {
+                const li = document.createElement("li");
+                li.textContent = `${i + 1}. ${entry.gebruiker} – ${entry.aantal}`;
+                list.appendChild(li);
+            });
+        } catch (err) {
+            console.error("Fout bij laden leaderboard", err);
+            list.innerHTML = "<li>Kon leaderboard niet laden</li>";
+        }
+    });
+
+    document.getElementById("close-leaderboard").addEventListener("click", () => {
+        document.getElementById("leaderboard-modal").classList.add("hidden");
+    });
 }
 
 /* =================================

@@ -65,6 +65,16 @@
             <div class="legend-item"><i style="background:green"></i> Bos</div>
             <div class="legend-item"><i style="background:red"></i> Jachtgrens</div>
         </div>
+        <button id="show-leaderboard">Leaderboard</button>
+        <div id="leaderboard-modal" class="hidden modal-backdrop">
+            <div class="modal-box">
+                <h3>Top schutters</h3>
+                <ul id="leaderboard-list"></ul>
+                <div class="modal-actions">
+                    <button id="close-leaderboard">Sluiten</button>
+                </div>
+            </div>
+        </div>
     </div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="map.js"></script>
