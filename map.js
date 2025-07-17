@@ -999,6 +999,11 @@ function setupEventHandlers(map) {
         openAddShotModal(hutId);
     });
 
+    document.getElementById("sightingBack").addEventListener("click", () => {
+        document.getElementById("add-shot-modal").classList.add("hidden");
+        document.getElementById("sighting-modal").classList.remove("hidden");
+    });
+
 }
 
 /* =================================
