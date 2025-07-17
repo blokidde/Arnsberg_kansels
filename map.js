@@ -884,6 +884,30 @@ function setupEventHandlers(map) {
             shot_at: document.getElementById('shotTime').value
         };
 
+        // Extra: stuur zichtwaarneming mee als die er nog is
+        const sightingSpecies = document.getElementById('seenSpecies').value;
+        if (sightingSpecies) {
+            const sightingPayload = {
+                hut_id: hutId,
+                status: "wel-gezien",
+                soort: sightingSpecies,
+                aantal: parseInt(document.getElementById("seenCount").value),
+                mannetjes: parseInt(document.getElementById("seenMales").value),
+                vrouwtjes: parseInt(document.getElementById("seenFemales").value),
+                jonkies: parseInt(document.getElementById("seenYoung").value),
+                tijd: document.getElementById("seenTime").value
+            };
+            try {
+                await fetch(`${CONFIG.API_URL}/sessies`, {
+                    method: "POST",
+                    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+                    body: JSON.stringify(sightingPayload)
+                });
+            } catch (err) {
+                console.error("Zichtwaarneming niet opgeslagen", err);
+            }
+        }
+
         try {
             // Submit shot data to server
             const res = await fetch(`${CONFIG.API_URL}/schoten`, {
