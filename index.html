@@ -79,6 +79,32 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="map.js"></script>
     <script src="login.js"></script>
+    <div id="report-choice-modal" class="hidden modal-backdrop">
+        <div class="modal-box">
+            <h3>Wat wil je rapporteren?</h3>
+            <button class="report-choice-btn" data-choice="niet-gezien">niks gezien</button>
+            <button class="report-choice-btn" data-choice="wel-gezien">Wel iets gezien</button>
+            <div class="modal-actions">
+                <button id="cancelReportChoice">Annuleer</button>
+            </div>
+        </div>
+    </div>
+    <div id="sighting-modal" class="hidden modal-backdrop">
+        <div class="modal-box">
+            <h3>Wat heb je gezien?</h3>
+            <label>Soort dier <input type="text" id="seenSpecies" required></label>
+            <label>Aantal dieren <input type="number" id="seenCount" min="1"></label>
+            <label>Mannetjes <input type="number" id="seenMales" min="0"></label>
+            <label>Vrouwtjes <input type="number" id="seenFemales" min="0"></label>
+            <label>Jonkies <input type="number" id="seenYoung" min="0"></label>
+            <label>Tijdstip <input type="datetime-local" id="seenTime"></label>
+            <div class="modal-actions">
+                <button id="saveSighting">Opslaan</button>
+                <button id="continueToShot">Ook iets geschoten</button>
+                <button id="cancelSighting">Annuleer</button>
+            </div>
+        </div>
+    </div>
     <div id="add-shot-modal" class="hidden modal-backdrop">
         <div class="modal-box">
             <h3>Registreer geschoten dier</h3>

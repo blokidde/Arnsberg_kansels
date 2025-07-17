@@ -182,6 +182,16 @@ function closeAddShotModal() {
     document.getElementById('add-shot-form').reset();
 }
 
+function openReportChoiceModal(hutId) {
+    document.getElementById('report-choice-modal').dataset.hutId = hutId;
+    document.getElementById('report-choice-modal').classList.remove('hidden');
+}
+
+function openSightingModal(hutId) {
+    document.getElementById("sighting-modal").dataset.hutId = hutId;
+    document.getElementById("sighting-modal").classList.remove("hidden");
+}
+
 /* =================================
    API METHODS
    ================================= */
@@ -399,7 +409,7 @@ async function showMarkerPopup(event, markerData, map) {
     // Add shot button only if user is logged in
     const addShotBtn = isLoggedIn()
         ? `<br><button class="add-shot-btn" data-hut-id="${markerData.id}">
-               Voeg dier toe
+               Voeg rapportage toe
            </button>`
         : '';
 
@@ -774,8 +784,9 @@ function setupEventHandlers(map) {
         if (!btn) return;
 
         btn.addEventListener('click', () => {
-            openAddShotModal(btn.dataset.hutId);
+            openReportChoiceModal(btn.dataset.hutId);
         }, { once: true });
+
     });
 
     // UI event handlers
@@ -921,6 +932,73 @@ function setupEventHandlers(map) {
     document.getElementById("close-leaderboard").addEventListener("click", () => {
         document.getElementById("leaderboard-modal").classList.add("hidden");
     });
+
+    // Rapportagekeuze
+    document.querySelectorAll(".report-choice-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const choice = btn.dataset.choice;
+            const modal = document.getElementById('report-choice-modal');
+            const hutId = parseInt(modal.dataset.hutId, 10);
+            modal.classList.add("hidden");
+
+            if (choice === "niet-gezien") {
+                const payload = {
+                    hut_id: hutId,
+                    status: "niet-gezien",
+                    timestamp: new Date().toISOString()
+                };
+                fetch(`${CONFIG.API_URL}/sessies`, {
+                    method: "POST",
+                    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                }).then(() => alert("Rapportage opgeslagen"));
+            } else if (choice === "wel-gezien") {
+                openSightingModal(hutId);
+            }
+        });
+    });
+
+    document.getElementById("cancelReportChoice").addEventListener("click", () => {
+        document.getElementById("report-choice-modal").classList.add("hidden");
+    });
+
+    // Zichtwaarneming
+    document.getElementById("cancelSighting").addEventListener("click", () => {
+        document.getElementById("sighting-modal").classList.add("hidden");
+    });
+
+    document.getElementById("saveSighting").addEventListener("click", async () => {
+        const hutId = parseInt(document.getElementById("sighting-modal").dataset.hutId, 10);
+        const payload = {
+            hut_id: hutId,
+            status: "wel-gezien",
+            soort: document.getElementById("seenSpecies").value,
+            aantal: parseInt(document.getElementById("seenCount").value),
+            mannetjes: parseInt(document.getElementById("seenMales").value),
+            vrouwtjes: parseInt(document.getElementById("seenFemales").value),
+            jonkies: parseInt(document.getElementById("seenYoung").value),
+            tijd: document.getElementById("seenTime").value
+        };
+        try {
+            await fetch(`${CONFIG.API_URL}/sessies`, {
+                method: "POST",
+                headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            alert("Waarneming opgeslagen");
+            document.getElementById("sighting-modal").classList.add("hidden");
+        } catch (err) {
+            alert("Fout bij opslaan waarneming");
+            console.error(err);
+        }
+    });
+
+    document.getElementById("continueToShot").addEventListener("click", () => {
+        const hutId = parseInt(document.getElementById("sighting-modal").dataset.hutId, 10);
+        document.getElementById("sighting-modal").classList.add("hidden");
+        openAddShotModal(hutId);
+    });
+
 }
 
 /* =================================
