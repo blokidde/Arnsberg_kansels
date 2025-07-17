@@ -91,24 +91,25 @@
             <h3>Wat heb je gezien?</h3>
 
             <form id="sighting-form">
-            <label>
-                Soort dier
-                <select id="seenSpecies" required>
-                    <option value="zwijn">Zwijn</option>
-                    <option value="wasbeer">Wasbeer</option>
-                    <option value="vos">Vos</option>
-                </select>
-            </label>
-            <label>Aantal dieren <input type="number" id="seenCount" min="1"></label>
-            <label>Mannetjes <input type="number" id="seenMales" min="0"></label>
-            <label>Vrouwtjes <input type="number" id="seenFemales" min="0"></label>
-            <label>Jonkies <input type="number" id="seenYoung" min="0"></label>
-            <label>Tijdstip <input type="datetime-local" id="seenTime"></label>
-            <div class="modal-actions">
-                <button id="saveSighting">Opslaan</button>
-                <button id="continueToShot">Ook iets geschoten</button>
-                <button id="cancelSighting">Annuleer</button>
-            </div>
+                <label>
+                    Soort dier
+                    <select id="seenSpecies" required>
+                        <option value="zwijn">Zwijn</option>
+                        <option value="wasbeer">Wasbeer</option>
+                        <option value="vos">Vos</option>
+                    </select>
+                </label>
+                <label>Aantal dieren <input type="number" id="seenCount" min="1"></label>
+                <label>Mannetjes <input type="number" id="seenMales" min="0"></label>
+                <label>Vrouwtjes <input type="number" id="seenFemales" min="0"></label>
+                <label>Jonkies <input type="number" id="seenYoung" min="0"></label>
+                <label>Tijdstip <input type="datetime-local" id="seenTime"></label>
+                <div class="modal-actions">
+                    <button id="cancelSighting" type="button">Annuleer</button>
+                    <button id="continueToShot" type="button">Ook iets geschoten</button>
+                    <button id="saveSighting" type="button">Opslaan</button>
+
+                </div>
             </form>
         </div>
     </div>
@@ -157,8 +158,8 @@
 
                 <div class="modal-actions">
                     <button type="button" id="sightingBack">Terug</button>
-                    <button type="submit" id="saveShot">Opslaan</button>
                     <button type="button" id="cancelShot">Annuleren</button>
+                    <button type="submit" id="saveShot">Opslaan</button>
                 </div>
             </form>
         </div>

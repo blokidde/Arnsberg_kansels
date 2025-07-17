@@ -414,46 +414,6 @@ body {
     gap: 10px;
 }
 
-/* Form styling voor zichtwaarnemingen */
-#sighting-modal label {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-size: 0.95rem;
-}
-
-#sighting-modal input,
-#sighting-modal select,
-#sighting-modal textarea {
-    padding: 6px 8px;
-    border: 1px solid #c5d5e1;
-    border-radius: 5px;
-    font-size: 1rem;
-    background: #fff;
-}
-
-#sightingBack {
-    background: #eeeeee;
-}
-
-/* Form labels in modals */
-#add-shot-form label {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-size: 0.95rem;
-}
-
-/* Form inputs in modals */
-#add-shot-form input,
-#add-shot-form select,
-#add-shot-form textarea {
-    padding: 6px 8px;
-    border: 1px solid #c5d5e1;
-    border-radius: 5px;
-    font-size: 1rem;
-}
-
 /* Modal action buttons container */
 .modal-actions {
     display: flex;
@@ -468,16 +428,6 @@ body {
     border: none;
     border-radius: 6px;
     cursor: pointer;
-}
-
-/* Specific button colors */
-#saveShot {
-    background: #43a047;
-    color: #fff;
-}
-
-#cancelShot {
-    background: #eeeeee;
 }
 
 /* Utility class for hiding elements */
@@ -495,4 +445,65 @@ body {
 #leaderboard-list li {
     margin-bottom: 6px;
     font-weight: bold;
+}
+
+/* =================================
+   SIGHTING & SHOT – gelijke opmaak
+   ================================= */
+
+/* --- Formulierelementen --- */
+#sighting-form label,
+#add-shot-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+}
+
+#sighting-form input,
+#sighting-form select,
+#sighting-form textarea,
+#add-shot-form input,
+#add-shot-form select,
+#add-shot-form textarea {
+    padding: 6px 8px;
+    border: 1px solid #c5d5e1;
+    border-radius: 5px;
+    font-size: 1rem;
+    background: #fff;
+}
+
+/* Tekst-area (notities) niet meer uitrekbaar */
+.modal-box textarea {
+    resize: none;
+}
+
+/* --- Actieknoppen --- */
+/* opslaan – altijd groen */
+#saveSighting,
+#saveShot {
+    background: #43a047;
+    color: #fff;
+}
+#saveSighting:hover,
+#saveShot:hover {
+    background: #2e7031;
+}
+
+/* annuleer – altijd rood */
+#cancelSighting,
+#cancelShot {
+    background: #d32f2f;
+    color: #fff;
+}
+#cancelSighting:hover,
+#cancelShot:hover {
+    background: #b71c1c;
+}
+
+/* secundaire knoppen (terug / doorgaan) neutraal grijs */
+#sightingBack,
+#continueToShot {
+    background: #eeeeee;
 }
