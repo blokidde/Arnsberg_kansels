@@ -420,17 +420,46 @@ async function showMarkerPopup(event, markerData, map) {
 
         // Generate shot list HTML
         const listHtml = schoten.length
-            ? `<ul>${schoten.map(s =>
-                `<li>${new Date(s.shot_at)
-                    .toLocaleString('nl-NL', { dateStyle: 'short', timeStyle: 'short' })}
-                     – ${s.soort}
-                     ${s.geslacht || ''}${s.gewicht_kg ? `, ${s.gewicht_kg} kg` : ''}</li>`).join('')
-            }</ul>`
+            ? `<ul>${schoten.map(s => `
+        <li>
+            ${new Date(s.shot_at).toLocaleString('nl-NL', { dateStyle: 'short', timeStyle: 'short' })} –
+            ${s.soort}
+            ${s.geslacht || ''}${s.gewicht_kg ? `, ${s.gewicht_kg} kg` : ''}
+            ${s.gebruiker === localStorage.getItem("username") || localStorage.getItem("username") === "admin"
+                    ? ` <button class="delete-shot-btn" data-id="${s.id}">✖</button>` : ''}
+        </li>
+    `).join('')}</ul>`
             : '<em>Geen schoten geregistreerd</em>';
+
 
         // Update popup content with shot list
         const container = popup.getElement();
         container.querySelector('#shot-list').innerHTML = listHtml;
+        // Voeg delete-knoppen toe (alleen zichtbaar voor eigenaar of admin)
+        container.querySelectorAll(".delete-shot-btn").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                if (!confirm("Weet je zeker dat je dit schot wilt verwijderen?")) return;
+
+                try {
+                    const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
+                    const res = await apiFetch(`${CONFIG.API_URL}/schoten/${btn.dataset.id}`, {
+                        method: "DELETE",
+                        headers
+                    });
+                    if (!res.ok) throw new Error("Delete mislukt");
+
+                    // Refresh popup om bijgewerkte lijst te tonen
+                    const marker = state.markers.find(m => m.id === markerData.id);
+                    if (marker) {
+                        const latlng = L.latLng(marker.lat, marker.lng);
+                        showMarkerPopup({ latlng }, marker, mapGlobal);
+                    }
+                } catch (err) {
+                    alert("Kon schot niet verwijderen");
+                    console.error(err);
+                }
+            });
+        });
     } catch (err) {
         // Show error message if loading fails
         const container = popup.getElement();
