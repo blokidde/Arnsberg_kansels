@@ -918,7 +918,11 @@ function setupEventHandlers(map) {
             if (!res.ok) throw new Error(await res.text());
 
             closeAddShotModal();
-            alert("Schot opgeslagen!");
+
+            document.getElementById("sighting-modal").classList.add("hidden");
+            document.getElementById("sighting-form").reset();
+            
+            alert("Schot en sighting opgeslagen!");
 
             // Refresh marker popup to show new shot
             const marker = state.markers.find(m => m.id === hutId);
