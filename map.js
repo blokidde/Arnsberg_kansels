@@ -921,7 +921,7 @@ function setupEventHandlers(map) {
 
             document.getElementById("sighting-modal").classList.add("hidden");
             document.getElementById("sighting-form").reset();
-            
+
             alert("Schot en sighting opgeslagen!");
 
             // Refresh marker popup to show new shot
