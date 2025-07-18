@@ -1015,6 +1015,7 @@ function setupEventHandlers(map) {
             });
             alert("Waarneming opgeslagen");
             document.getElementById("sighting-modal").classList.add("hidden");
+            document.getElementById("sighting-form").reset();
         } catch (err) {
             alert("Fout bij opslaan waarneming");
             console.error(err);
