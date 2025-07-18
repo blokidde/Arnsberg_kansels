@@ -135,12 +135,27 @@ function setupMapControls(map) {
 
     // Handle successful location finding
     map.on('locationfound', function (e) {
-        // Remove previous location marker if exists
+        const heading = e.heading || 0;
+
+        const customIcon = L.divIcon({
+            className: 'custom-location-rotating',
+            iconSize: [24, 24]
+        });
+
         if (map._locationMarker) {
-            map.removeLayer(map._locationMarker);
+            map._locationMarker.setLatLng(e.latlng);
+        } else {
+            map._locationMarker = L.marker(e.latlng, {
+                icon: customIcon,
+                rotationAngle: heading
+            }).addTo(map);
         }
-        // Add new location marker
-        map._locationMarker = L.marker(e.latlng).addTo(map);
+
+        // draai het element handmatig
+        const el = map._locationMarker.getElement();
+        if (el) {
+            el.style.transform = `rotate(${heading}deg)`;
+        }
     });
 }
 
