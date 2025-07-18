@@ -127,7 +127,7 @@ function setupMapControls(map) {
         // Handle location button click
         L.DomEvent.on(btn, 'click', function (e) {
             L.DomEvent.stopPropagation(e);
-            map.locate({ setView: true, maxZoom: CONFIG.START_ZOOM });
+            map.locate({ setView: true, watch: true, maxZoom: CONFIG.START_ZOOM });
         });
         return btn;
     };
