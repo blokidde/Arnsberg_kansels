@@ -507,15 +507,6 @@ body {
     background: #eeeeee;
 }
 
-.custom-location-marker {
-    width: 16px;
-    height: 16px;
-    background: #2196f3;
-    border: 2px solid white;
-    border-radius: 50%;
-    box-shadow: 0 0 4px rgba(0,0,0,0.4);
-}
-
 .custom-location-rotating {
     width: 24px;
     height: 24px;
