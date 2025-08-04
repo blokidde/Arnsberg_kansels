@@ -1651,6 +1651,24 @@ function stopLocationTracking(map) {
 }
 
 /* =================================
+   UI VISIBILITY MANAGEMENT
+   ================================= */
+
+// Update UI visibility based on login status
+function updateUIForLoginStatus() {
+    const isUserLoggedIn = isLoggedIn();
+    const leaderboardButton = document.getElementById('dropdown-leaderboard');
+    
+    if (leaderboardButton) {
+        if (isUserLoggedIn) {
+            leaderboardButton.style.display = 'flex'; // Show leaderboard button
+        } else {
+            leaderboardButton.style.display = 'none'; // Hide leaderboard button
+        }
+    }
+}
+
+/* =================================
    MAIN INITIALIZATION
    ================================= */
 
@@ -1683,6 +1701,18 @@ async function init() {
         console.log("Refreshing wind data...");
         await loadWindOverlay(map);
     }, 60 * 60 * 1000); // 1 hour in milliseconds
+
+    // Update UI visibility based on initial login status
+    updateUIForLoginStatus();
+    
+    // Listen for login/logout events to update UI visibility
+    document.addEventListener('userLoggedIn', () => {
+        updateUIForLoginStatus();
+    });
+    
+    document.addEventListener('userLoggedOut', () => {
+        updateUIForLoginStatus();
+    });
 
     console.log("Map application initialized successfully");
 }
