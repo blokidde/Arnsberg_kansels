@@ -37,7 +37,8 @@ const state = {
     selectedZone: null, // Currently selected zone for editing
     editHandles: [],    // Array of drag handles for zone editing
     zoneId: 1,          // Counter for zone IDs
-    hutMode: null       // Current mode for hut interaction (add, edit, delete)
+    hutMode: null,      // Current mode for hut interaction (add, edit, delete)
+    layers: {}          // Store overlay layers like wind
 };
 
 // Global map reference for use across functions
@@ -76,6 +77,7 @@ function getAuthHeaders() {
 // Initialize the Leaflet map with all required settings
 function initializeMap() {
     const map = L.map('map', {
+        preferCanvas: true,
         zoomControl: true,
         doubleClickZoom: true,
         scrollWheelZoom: true,
@@ -96,19 +98,28 @@ function initializeMap() {
 function setupMapLayers(map) {
     // Satellite imagery layer
     const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
-    // Light themed map layer
-    const light = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png');
+    // Topographic map with elevation data
+    const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        maxZoom: 17,
+        attribution: 'Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap'
+    });
 
-    // Add layer control to switch between map types
-    L.control.layers(
-        {
-            "Licht": light,
-            "Satelliet": satellite
-        },
-        null,
-        { position: 'bottomright' }
-    ).addTo(map);
+    // Base layers for switching between map types
+    const baseLayers = {
+        "Hoogte": topo,
+        "Satelliet": satellite
+    };
 
+    // Overlay layers (will be populated by wind layer)
+    const overlayLayers = {};
+
+    // Add layer control to switch between map types and overlays
+    const layerControl = L.control.layers(baseLayers, overlayLayers, { 
+        position: 'bottomright' 
+    }).addTo(map);
+
+    // Store layer control reference for adding overlays later
+    state.layerControl = layerControl;
 
     satellite.addTo(map);
 }
@@ -265,11 +276,19 @@ function closeAddShotModal() {
 }
 
 function openReportChoiceModal(hutId) {
+    if (!isLoggedIn()) {
+        showLoginError();
+        return;
+    }
     document.getElementById('report-choice-modal').dataset.hutId = hutId;
     document.getElementById('report-choice-modal').classList.remove('hidden');
 }
 
 function openSightingModal(hutId) {
+    if (!isLoggedIn()) {
+        showLoginError();
+        return;
+    }
     document.getElementById("sighting-modal").dataset.hutId = hutId;
     document.getElementById("sighting-modal").classList.remove("hidden");
 }
@@ -805,6 +824,42 @@ function highlightModeButtons() {
     }
 }
 
+// Exit all edit modes and close any active popups/modals
+function exitAllEditModes() {
+    // Reset hut mode
+    state.hutMode = null;
+    
+    // Update button highlighting
+    highlightModeButtons();
+    
+    // Close all modals/popups that might be open
+    document.getElementById("report-choice-modal").classList.add("hidden");
+    document.getElementById("sighting-modal").classList.add("hidden");
+    document.getElementById("add-shot-modal").classList.add("hidden");
+    
+    // Clear any drawing state
+    if (state.tempMarkers) {
+        state.tempMarkers.forEach(marker => map.removeLayer(marker));
+        state.tempMarkers = [];
+    }
+    if (state.tempLine) {
+        map.removeLayer(state.tempLine);
+        state.tempLine = null;
+    }
+    if (state.tempPolygon) {
+        map.removeLayer(state.tempPolygon);
+        state.tempPolygon = null;
+    }
+    state.drawingPoints = [];
+    
+    // Hide zone-related buttons
+    document.getElementById("zone-types").classList.add("hidden");
+    document.getElementById("confirm-zone").classList.add("hidden");
+    document.getElementById("delete-zone").classList.add("hidden");
+    
+    console.log("All edit modes exited and popups closed");
+}
+
 /* =================================
    DRAWING FUNCTIONS
    ================================= */
@@ -903,17 +958,20 @@ function setupEventHandlers(map) {
         // Close edit options when opening dropdown
         if (!dropdown.classList.contains("hidden")) {
             document.getElementById("edit-options").classList.add("hidden");
+            
+            // Exit all edit modes and close any active popups
+            exitAllEditModes();
         }
-    });
-
-    // Close dropdown menu
-    document.getElementById("menu-close").addEventListener("click", () => {
-        document.getElementById("menu-dropdown").classList.add("hidden");
     });
 
     // Handle dropdown Edit option
     document.getElementById("dropdown-edit").addEventListener("click", () => {
         document.getElementById("menu-dropdown").classList.add("hidden");
+        if (!isLoggedIn()) {
+            showLoginError();
+            exitAllEditModes(); // Reset all edit states when login fails
+            return;
+        }
         document.getElementById("edit-options").classList.toggle("hidden");
     });
 
@@ -957,21 +1015,43 @@ function setupEventHandlers(map) {
 
     // Show zone type selection
     document.getElementById("add-zone").addEventListener("click", () => {
+        if (!isLoggedIn()) {
+            showLoginError();
+            return;
+        }
         document.getElementById("zone-types").classList.toggle("hidden");
     });
 
     // Hut interaction mode buttons
     document.getElementById("mode-add").addEventListener("click", () => {
+        if (!isLoggedIn()) {
+            showLoginError();
+            state.hutMode = null; // Reset mode when login fails
+            highlightModeButtons();
+            return;
+        }
         state.hutMode = "add";
         highlightModeButtons();
     });
 
     document.getElementById("mode-edit").addEventListener("click", () => {
+        if (!isLoggedIn()) {
+            showLoginError();
+            state.hutMode = null; // Reset mode when login fails
+            highlightModeButtons();
+            return;
+        }
         state.hutMode = "edit";
         highlightModeButtons();
     });
 
     document.getElementById("mode-delete").addEventListener("click", () => {
+        if (!isLoggedIn()) {
+            showLoginError();
+            state.hutMode = null; // Reset mode when login fails
+            highlightModeButtons();
+            return;
+        }
         state.hutMode = "delete";
         highlightModeButtons();
     });
@@ -1170,6 +1250,46 @@ function setupEventHandlers(map) {
    LOCATION UTILITIES
    ================================= */
 
+// Load and display wind overlay from backend
+async function loadWindOverlay(map) {
+    try {
+        const headers = { ...NGROK_SKIP_HEADER };
+        const response = await fetch(`${CONFIG.API_URL}/wind/latest`, { headers });
+        
+        if (!response.ok) {
+            console.warn('Wind data unavailable:', response.status);
+            return;
+        }
+
+        const windData = await response.json();
+        console.log('Wind data loaded:', windData);
+
+        // Remove existing wind layer if present
+        if (state.layers.wind) {
+            map.removeLayer(state.layers.wind);
+            state.layerControl.removeLayer(state.layers.wind);
+        }
+
+        // Create wind velocity layer
+        state.layers.wind = L.velocityLayer({
+            displayValues: true,
+            velocityScale: 0.01,
+            maxVelocity: 35,
+            opacity: 0.8,
+            pane: "overlayPane",
+            data: windData
+        });
+
+        // Add wind layer directly to map (don't add to layer control to avoid errors)
+        state.layers.wind.addTo(map);
+
+        console.log('Wind overlay added to map');
+
+    } catch (error) {
+        console.error('Failed to load wind data:', error);
+    }
+}
+
 // Start tracking device compass/orientation
 function startCompassTracking() {
     // Check if device orientation is supported
@@ -1294,6 +1414,16 @@ async function init() {
     console.log("Loading markers...");
     await loadAndDisplayMarkers(map);
     await loadAndDisplayZones(map);
+
+    // Load wind overlay
+    console.log("Loading wind overlay...");
+    await loadWindOverlay(map);
+
+    // Setup automatic wind data refresh every hour
+    setInterval(async () => {
+        console.log("Refreshing wind data...");
+        await loadWindOverlay(map);
+    }, 60 * 60 * 1000); // 1 hour in milliseconds
 
     console.log("Map application initialized successfully");
 }
