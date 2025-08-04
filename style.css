@@ -225,30 +225,41 @@ body {
 }
 
 /* =================================
-   LEGEND COMPONENTS
+   LEADERBOARD CONTAINER
    ================================= */
 
-/* Legend box styling */
-#legend-box {
-    font: 14px Arial;
+/* Leaderboard container positioning */
+#leaderboard-container {
+    position: fixed;
+    top: 16px;
+    right: 200px; /* Position to the left of floating menu */
+    z-index: 3000;
 }
 
-/* Individual legend items */
-.legend-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 4px;
+#leaderboard-container button {
+    cursor: pointer;
+    padding: 7px 14px;
+    border: none;
+    border-radius: 5px;
+    background: #e3f2fd;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #16569e;
+    transition: background 0.18s, color 0.13s;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.13);
+    border: 1.5px solid #e3eaf2;
 }
 
-/* Legend item color indicators */
-.legend-item i {
-    width: 16px;
-    height: 16px;
-    display: inline-block;
-    margin-right: 6px;
-    opacity: 0.7;
-    border-radius: 4px;
+#leaderboard-container button:hover {
+    background: #bbdefb;
+    color: #10427a;
 }
+
+/* =================================
+   LEGEND COMPONENTS (REMOVED)
+   ================================= */
+
+/* Legend components have been removed as requested */
 
 /* =================================
    MAP TOOLTIPS

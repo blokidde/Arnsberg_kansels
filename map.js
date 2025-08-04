@@ -895,16 +895,9 @@ function setupEventHandlers(map) {
     // UI event handlers
     console.log("Edit toggle geladen");
 
-    // Toggle edit options menu
+    // Toggle edit options menu - only shows edit options now
     document.getElementById("toggle-edit").addEventListener("click", () => {
         document.getElementById("edit-options").classList.toggle("hidden");
-        document.getElementById("legend-box").classList.add("hidden");
-    });
-
-    // Toggle legend menu
-    document.getElementById("toggle-legend").addEventListener("click", () => {
-        document.getElementById("legend-box").classList.toggle("hidden");
-        document.getElementById("edit-options").classList.add("hidden");
     });
 
     // Show zone type selection
