@@ -202,15 +202,8 @@ function setupMapControls(map) {
     // Handle successful location finding
     map.on('locationfound', function (e) {
         if (locationMarker === null) {
-            // First location fix: create Google Maps style location marker
-            locationMarker = L.circleMarker(e.latlng, {
-                radius: 8,
-                fillColor: '#4285F4',
-                color: '#ffffff',
-                weight: 2,
-                opacity: 1,
-                fillOpacity: 1
-            }).addTo(map);
+            // First location fix: create location marker with direction arrow
+            createLocationMarker(e.latlng, map);
             
             map.setView(e.latlng, CONFIG.START_ZOOM);
             
@@ -221,12 +214,7 @@ function setupMapControls(map) {
             if (stopBtn) stopBtn.classList.remove('hidden');
         } else {
             // Subsequent updates: just move the marker smoothly
-            locationMarker.setLatLng(e.latlng);
-        }
-        
-        // Update direction indicator if we have a heading
-        if (currentHeading !== null) {
-            updateLocationDirection(currentHeading, e.latlng);
+            updateLocationMarker(e.latlng);
         }
     });
     
@@ -1250,6 +1238,74 @@ function setupEventHandlers(map) {
    LOCATION UTILITIES
    ================================= */
 
+// Create location marker with direction arrow
+function createLocationMarker(latlng, map) {
+    // Create the main location dot
+    locationMarker = L.circleMarker(latlng, {
+        radius: 8,
+        fillColor: '#4285F4',
+        color: '#ffffff',
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 1
+    }).addTo(map);
+    
+    // Create the direction arrow if we have heading
+    if (currentHeading !== null) {
+        createDirectionArrow(latlng, currentHeading);
+    }
+}
+
+// Update location marker position
+function updateLocationMarker(latlng) {
+    if (locationMarker) {
+        locationMarker.setLatLng(latlng);
+    }
+    
+    // Update direction arrow if we have heading
+    if (currentHeading !== null) {
+        updateDirectionArrow(latlng, currentHeading);
+    }
+}
+
+// Create direction arrow
+function createDirectionArrow(latlng, heading) {
+    if (locationDirectionMarker) {
+        mapGlobal.removeLayer(locationDirectionMarker);
+    }
+    
+    // Create custom direction icon (arrow pointing in heading direction)
+    const directionIcon = L.divIcon({
+        className: 'location-direction-icon',
+        html: `<div class="direction-arrow" style="transform: rotate(${heading}deg);">
+                 <div class="arrow-shape"></div>
+               </div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+    });
+    
+    locationDirectionMarker = L.marker(latlng, {
+        icon: directionIcon,
+        zIndexOffset: 1000
+    }).addTo(mapGlobal);
+}
+
+// Update direction arrow
+function updateDirectionArrow(latlng, heading) {
+    if (locationDirectionMarker) {
+        locationDirectionMarker.setLatLng(latlng);
+        const iconElement = locationDirectionMarker.getElement();
+        if (iconElement) {
+            const arrowDiv = iconElement.querySelector('.direction-arrow');
+            if (arrowDiv) {
+                arrowDiv.style.transform = `rotate(${heading}deg)`;
+            }
+        }
+    } else {
+        createDirectionArrow(latlng, heading);
+    }
+}
+
 // Load and display wind overlay from backend
 async function loadWindOverlay(map) {
     try {
@@ -1338,31 +1394,11 @@ function handleOrientation(event) {
             currentHeading = 360 - heading;
         }
         
-        // Update direction marker if location is available
+        // Update direction arrow if location is available
         if (locationMarker && currentHeading !== null) {
-            updateLocationDirection(currentHeading, locationMarker.getLatLng());
+            updateDirectionArrow(locationMarker.getLatLng(), currentHeading);
         }
     }
-}
-
-// Update location direction indicator
-function updateLocationDirection(heading, latlng) {
-    if (locationDirectionMarker) {
-        mapGlobal.removeLayer(locationDirectionMarker);
-    }
-    
-    // Create custom direction icon (triangle pointing in heading direction)
-    const directionIcon = L.divIcon({
-        className: 'location-direction-icon',
-        html: `<div style="transform: rotate(${heading}deg);">▲</div>`,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10]
-    });
-    
-    locationDirectionMarker = L.marker(latlng, {
-        icon: directionIcon,
-        zIndexOffset: 1000
-    }).addTo(mapGlobal);
 }
 
 // Stop location tracking and clean up
