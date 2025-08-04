@@ -1270,18 +1270,23 @@ async function loadWindOverlay(map) {
             state.layerControl.removeLayer(state.layers.wind);
         }
 
-        // Create wind velocity layer
+        // Create wind velocity layer with proper configuration
         state.layers.wind = L.velocityLayer({
             displayValues: true,
-            velocityScale: 0.01,
-            maxVelocity: 35,
-            opacity: 0.8,
-            pane: "overlayPane",
+            displayOptions: {
+                velocityType: 'Wind',
+                displayPosition: 'bottomleft',
+                displayEmptyString: 'Geen wind data'
+            },
+            velocityScale: 0.005,
+            maxVelocity: 15,
+            colorScale: ["rgb(240,248,255)", "rgb(220,238,255)", "rgb(200,228,255)", "rgb(180,218,255)", "rgb(160,208,255)", "rgb(140,198,255)", "rgb(120,188,255)", "rgb(100,178,255)", "rgb(80,168,255)", "rgb(60,158,255)", "rgb(40,148,255)", "rgb(20,138,255)", "rgb(0,128,255)", "rgb(0,118,235)", "rgb(0,108,215)"],
+            opacity: 0.5,
             data: windData
         });
 
-        // Add wind layer directly to map (don't add to layer control to avoid errors)
-        state.layers.wind.addTo(map);
+        // Add to layer control so you can toggle it
+        state.layerControl.addOverlay(state.layers.wind, "Wind");
 
         console.log('Wind overlay added to map');
 
