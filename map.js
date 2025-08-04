@@ -284,6 +284,7 @@ function openSightingModal(hutId) {
 // Open kansels list modal
 // State for kansel visibility
 let kanselVisibilityState = [];
+let kanselMarkerRefs = []; // Keep track of marker references
 
 // Open kansels list modal
 function openKanselsModal() {
@@ -293,6 +294,19 @@ function openKanselsModal() {
     // Initialize visibility state if not exists
     if (kanselVisibilityState.length === 0) {
         kanselVisibilityState = state.markers.map(() => true); // All visible by default
+    }
+    
+    // Initialize marker references if not exists
+    if (kanselMarkerRefs.length === 0) {
+        kanselMarkerRefs = new Array(state.markers.length).fill(null);
+        // Find existing markers on the map
+        state.markers.forEach((markerData, index) => {
+            mapGlobal.eachLayer(layer => {
+                if (layer.markerData && layer.markerData === markerData) {
+                    kanselMarkerRefs[index] = layer;
+                }
+            });
+        });
     }
     
     populateKanselsList();
@@ -313,7 +327,7 @@ function populateKanselsList() {
         listItem.dataset.index = index;
         
         // Check if this kansel is selected for visibility
-        const isSelected = kanselVisibilityState[index] || false;
+        const isSelected = kanselVisibilityState[index] !== undefined ? kanselVisibilityState[index] : true;
         if (isSelected) {
             listItem.classList.add('selected');
         }
@@ -346,6 +360,11 @@ function populateKanselsList() {
 
 // Toggle kansel selection (checkbox)
 function toggleKanselSelection(index) {
+    // Ensure the visibility state array is properly sized
+    while (kanselVisibilityState.length <= index) {
+        kanselVisibilityState.push(true);
+    }
+    
     // Toggle the state
     kanselVisibilityState[index] = !kanselVisibilityState[index];
     
@@ -385,26 +404,23 @@ function confirmKanselVisibility() {
     // Go through all markers and show/hide based on selection
     state.markers.forEach((markerData, index) => {
         const shouldBeVisible = kanselVisibilityState[index];
+        let mapMarker = kanselMarkerRefs[index];
         
-        // Find the actual marker on the map
-        let mapMarker = null;
-        mapGlobal.eachLayer(layer => {
-            if (layer.markerData && layer.markerData === markerData) {
-                mapMarker = layer;
+        // If marker doesn't exist, create it
+        if (!mapMarker) {
+            mapMarker = createMarkerElement(markerData, mapGlobal);
+            kanselMarkerRefs[index] = mapMarker;
+        }
+        
+        if (shouldBeVisible) {
+            // Make sure marker is on the map
+            if (!mapGlobal.hasLayer(mapMarker)) {
+                mapMarker.addTo(mapGlobal);
             }
-        });
-        
-        if (mapMarker) {
-            if (shouldBeVisible) {
-                // Make sure marker is on the map
-                if (!mapGlobal.hasLayer(mapMarker)) {
-                    mapMarker.addTo(mapGlobal);
-                }
-            } else {
-                // Remove marker from map
-                if (mapGlobal.hasLayer(mapMarker)) {
-                    mapGlobal.removeLayer(mapMarker);
-                }
+        } else {
+            // Remove marker from map but keep reference
+            if (mapGlobal.hasLayer(mapMarker)) {
+                mapGlobal.removeLayer(mapMarker);
             }
         }
     });
@@ -735,6 +751,12 @@ async function loadAndDisplayMarkers(map) {
             console.log("Creating marker for:", markerData);
             const marker = createMarkerElement(markerData, map);
             state.markers.push(markerData);
+            
+            // Add to kansel tracking arrays if they exist
+            if (kanselVisibilityState.length > 0) {
+                kanselVisibilityState.push(true); // New markers are visible by default
+                kanselMarkerRefs.push(marker);
+            }
         });
 
         console.log(`Loaded ${markersData.length} markers`);
@@ -803,6 +825,12 @@ async function addNewMarker(event, map) {
         // Create marker on the map
         const marker = createMarkerElement(markerData, map);
         state.markers.push(markerData);
+        
+        // Add to kansel tracking arrays if they exist
+        if (kanselVisibilityState.length > 0) {
+            kanselVisibilityState.push(true); // New markers are visible by default
+            kanselMarkerRefs.push(marker);
+        }
 
         console.log("New marker added:", markerData);
     } catch (error) {
