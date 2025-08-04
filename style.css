@@ -61,6 +61,57 @@ body {
     background: #f1f6fa;
 }
 
+/* New location control container */
+.location-control {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Individual location control buttons */
+.location-control .locate-btn {
+    padding: 8px 10px;
+    font-size: 16px;
+    min-width: 35px;
+    text-align: center;
+    margin: 0;
+}
+
+/* Active location tracking styling */
+.locate-once-btn.active {
+    background: #4CAF50;
+    color: white;
+}
+
+.locate-once-btn.active:hover {
+    background: #45a049;
+}
+
+/* Hide center and stop buttons initially */
+.locate-center-btn.hidden,
+.locate-stop-btn.hidden {
+    display: none;
+}
+
+/* Location direction indicator styling */
+.location-direction-icon {
+    color: #4285F4;
+    font-size: 14px;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.9), 0 0 1px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+    font-weight: bold;
+}
+
+.location-direction-icon div {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: center;
+    transition: transform 0.2s ease-out;
+}
+
 /* =================================
    CONTROL PANELS
    ================================= */
@@ -154,6 +205,16 @@ body {
 #floating-menu button:hover {
     background: #bbdefb;
     color: #10427a;
+}
+
+/* Active mode button styling */
+#floating-menu button.active {
+    background: #4CAF50;
+    color: white;
+}
+
+#floating-menu button.active:hover {
+    background: #45a049;
 }
 
 /* Edit options container */

@@ -14,7 +14,7 @@ const CONFIG = {
         [51.4215025017151, 7.89968490600586], // bottom right bound
         [51.4227863001803, 7.85419464111328]  // bottom left bound
     ],
-    MIN_ZOOM: 15, // Minimum allowed zoom level
+    MIN_ZOOM: 10, // Minimum allowed zoom level
     MAX_ZOOM: 17  // Maximum allowed zoom level
 };
 
@@ -42,6 +42,12 @@ const state = {
 
 // Global map reference for use across functions
 let mapGlobal;
+
+// Location tracking variables
+let locationMarker = null;   // behoud één marker
+let locationWatchId = null;  // id van map.locate({ watch:true })
+let locationDirectionMarker = null;  // richtingsindicator marker
+let currentHeading = null;   // huidige kompasrichting
 
 /* =================================
    AUTHENTICATION HELPERS
@@ -109,38 +115,114 @@ function setupMapLayers(map) {
 
 // Setup map boundaries to restrict panning
 function setupMapBounds(map) {
+    // TEMPORARILY COMMENTED OUT FOR TESTING LOCATION FUNCTIONALITY
+    // Uncomment these lines after testing is complete
+    /*
     const bounds = L.latLngBounds(CONFIG.MAP_BOUNDS);
     map.setMaxBounds(bounds);
     // Ensure map stays within bounds when dragging
     map.on('drag', function () {
         map.panInsideBounds(bounds, { animate: false });
     });
+    */
 }
 
 // Setup map controls (location button, etc.)
 function setupMapControls(map) {
-    // Create location button control
-    const locate = L.control({ position: 'topleft' });
-    locate.onAdd = function () {
-        const btn = L.DomUtil.create('button', 'locate-btn');
-        btn.innerHTML = 'Locatie';
-        // Handle location button click
-        L.DomEvent.on(btn, 'click', function (e) {
+    // Create custom location control with three buttons
+    const locationControl = L.control({ position: 'topleft' });
+    locationControl.onAdd = function () {
+        const container = L.DomUtil.create('div', 'location-control');
+        
+        // 📍 locate-once button
+        const locateOnceBtn = L.DomUtil.create('button', 'locate-btn locate-once-btn', container);
+        locateOnceBtn.innerHTML = '📍';
+        locateOnceBtn.title = 'Start locatie tracking';
+        
+        // 🎯 locate-center button (initially hidden)
+        const locateCenterBtn = L.DomUtil.create('button', 'locate-btn locate-center-btn hidden', container);
+        locateCenterBtn.innerHTML = '🎯';
+        locateCenterBtn.title = 'Centreer op huidige locatie';
+        
+        // ⏹️ stop button (initially hidden)
+        const stopBtn = L.DomUtil.create('button', 'locate-btn locate-stop-btn hidden', container);
+        stopBtn.innerHTML = '⏹️';
+        stopBtn.title = 'Stop locatie tracking';
+        
+        // Handle locate-once button click
+        L.DomEvent.on(locateOnceBtn, 'click', function (e) {
             L.DomEvent.stopPropagation(e);
-            map.locate({ setView: true, maxZoom: CONFIG.START_ZOOM });
+            
+            // Start location watching if not already active
+            if (locationWatchId === null) {
+                locationWatchId = map.locate({ 
+                    watch: true,
+                    enableHighAccuracy: true,
+                    maximumAge: 30000,
+                    timeout: 15000
+                });
+                locateOnceBtn.classList.add('active');
+                
+                // Start listening for device orientation
+                startCompassTracking();
+            }
         });
-        return btn;
+        
+        // Handle locate-center button click
+        L.DomEvent.on(locateCenterBtn, 'click', function (e) {
+            L.DomEvent.stopPropagation(e);
+            
+            // Center on existing marker without restarting watch
+            if (locationMarker) {
+                map.setView(locationMarker.getLatLng(), CONFIG.START_ZOOM);
+            }
+        });
+        
+        // Handle stop button click
+        L.DomEvent.on(stopBtn, 'click', function (e) {
+            L.DomEvent.stopPropagation(e);
+            stopLocationTracking(map);
+        });
+        
+        return container;
     };
-    locate.addTo(map);
+    locationControl.addTo(map);
 
     // Handle successful location finding
     map.on('locationfound', function (e) {
-        // Remove previous location marker if exists
-        if (map._locationMarker) {
-            map.removeLayer(map._locationMarker);
+        if (locationMarker === null) {
+            // First location fix: create Google Maps style location marker
+            locationMarker = L.circleMarker(e.latlng, {
+                radius: 8,
+                fillColor: '#4285F4',
+                color: '#ffffff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 1
+            }).addTo(map);
+            
+            map.setView(e.latlng, CONFIG.START_ZOOM);
+            
+            // Show the center and stop buttons
+            const centerBtn = document.querySelector('.locate-center-btn');
+            const stopBtn = document.querySelector('.locate-stop-btn');
+            if (centerBtn) centerBtn.classList.remove('hidden');
+            if (stopBtn) stopBtn.classList.remove('hidden');
+        } else {
+            // Subsequent updates: just move the marker smoothly
+            locationMarker.setLatLng(e.latlng);
         }
-        // Add new location marker
-        map._locationMarker = L.marker(e.latlng).addTo(map);
+        
+        // Update direction indicator if we have a heading
+        if (currentHeading !== null) {
+            updateLocationDirection(currentHeading, e.latlng);
+        }
+    });
+    
+    // Handle location errors
+    map.on('locationerror', function (e) {
+        alert('Locatie kon niet worden bepaald: ' + e.message);
+        locationWatchId = null;
     });
 }
 
@@ -703,6 +785,27 @@ async function deleteSelectedZone(map) {
 }
 
 /* =================================
+   MODE HIGHLIGHTING FUNCTIONS
+   ================================= */
+
+// Update visual highlighting of mode buttons based on current mode
+function highlightModeButtons() {
+    // Remove active class from all mode buttons
+    document.querySelectorAll('#mode-add, #mode-edit, #mode-delete').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Add active class to current mode button
+    if (state.hutMode === 'add') {
+        document.getElementById('mode-add').classList.add('active');
+    } else if (state.hutMode === 'edit') {
+        document.getElementById('mode-edit').classList.add('active');
+    } else if (state.hutMode === 'delete') {
+        document.getElementById('mode-delete').classList.add('active');
+    }
+}
+
+/* =================================
    DRAWING FUNCTIONS
    ================================= */
 
@@ -812,14 +915,17 @@ function setupEventHandlers(map) {
     // Hut interaction mode buttons
     document.getElementById("mode-add").addEventListener("click", () => {
         state.hutMode = "add";
+        highlightModeButtons();
     });
 
     document.getElementById("mode-edit").addEventListener("click", () => {
         state.hutMode = "edit";
+        highlightModeButtons();
     });
 
     document.getElementById("mode-delete").addEventListener("click", () => {
         state.hutMode = "delete";
+        highlightModeButtons();
     });
 
     // Zone type selection handler
@@ -1032,6 +1138,111 @@ function setupEventHandlers(map) {
         document.getElementById("sighting-modal").classList.remove("hidden");
     });
 
+}
+
+/* =================================
+   LOCATION UTILITIES
+   ================================= */
+
+// Start tracking device compass/orientation
+function startCompassTracking() {
+    // Check if device orientation is supported
+    if (typeof DeviceOrientationEvent !== 'undefined') {
+        // Request permission for iOS devices
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            DeviceOrientationEvent.requestPermission()
+                .then(response => {
+                    if (response === 'granted') {
+                        window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+                        window.addEventListener('deviceorientation', handleOrientation, true);
+                    }
+                })
+                .catch(console.error);
+        } else {
+            // For Android and other devices
+            window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+            window.addEventListener('deviceorientation', handleOrientation, true);
+        }
+    }
+}
+
+// Stop tracking device compass/orientation
+function stopCompassTracking() {
+    window.removeEventListener('deviceorientationabsolute', handleOrientation, true);
+    window.removeEventListener('deviceorientation', handleOrientation, true);
+}
+
+// Handle device orientation change
+function handleOrientation(event) {
+    // Get compass heading (0-360 degrees)
+    let heading = event.webkitCompassHeading || event.alpha;
+    
+    if (heading !== null) {
+        // Normalize heading for different browsers
+        if (event.webkitCompassHeading) {
+            // iOS: webkitCompassHeading gives correct compass heading
+            currentHeading = heading;
+        } else if (event.alpha !== null) {
+            // Android: alpha needs to be inverted
+            currentHeading = 360 - heading;
+        }
+        
+        // Update direction marker if location is available
+        if (locationMarker && currentHeading !== null) {
+            updateLocationDirection(currentHeading, locationMarker.getLatLng());
+        }
+    }
+}
+
+// Update location direction indicator
+function updateLocationDirection(heading, latlng) {
+    if (locationDirectionMarker) {
+        mapGlobal.removeLayer(locationDirectionMarker);
+    }
+    
+    // Create custom direction icon (triangle pointing in heading direction)
+    const directionIcon = L.divIcon({
+        className: 'location-direction-icon',
+        html: `<div style="transform: rotate(${heading}deg);">▲</div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+    });
+    
+    locationDirectionMarker = L.marker(latlng, {
+        icon: directionIcon,
+        zIndexOffset: 1000
+    }).addTo(mapGlobal);
+}
+
+// Stop location tracking and clean up
+function stopLocationTracking(map) {
+    if (locationWatchId !== null) {
+        map.stopLocate();
+        locationWatchId = null;
+    }
+    
+    if (locationMarker !== null) {
+        map.removeLayer(locationMarker);
+        locationMarker = null;
+    }
+    
+    if (locationDirectionMarker !== null) {
+        map.removeLayer(locationDirectionMarker);
+        locationDirectionMarker = null;
+    }
+    
+    // Stop compass tracking
+    stopCompassTracking();
+    currentHeading = null;
+    
+    // Hide the center and stop buttons, remove active class
+    const centerBtn = document.querySelector('.locate-center-btn');
+    const stopBtn = document.querySelector('.locate-stop-btn');
+    const locateBtn = document.querySelector('.locate-once-btn');
+    
+    if (centerBtn) centerBtn.classList.add('hidden');
+    if (stopBtn) stopBtn.classList.add('hidden');
+    if (locateBtn) locateBtn.classList.remove('active');
 }
 
 /* =================================
