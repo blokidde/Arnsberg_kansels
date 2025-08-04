@@ -46,6 +46,7 @@
         <button id="menu-toggle">☰</button>
         <div id="menu-dropdown" class="hidden">
             <button id="dropdown-edit">Edit</button>
+            <button id="dropdown-kansels">Kansels</button>
             <button id="dropdown-leaderboard">Leaderboard</button>
         </div>
         <div id="edit-options" class="hidden">
@@ -71,6 +72,27 @@
             <ul id="leaderboard-list"></ul>
             <div class="modal-actions">
                 <button id="close-leaderboard">Sluiten</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kansels list modal -->
+    <div id="kansels-modal" class="hidden modal-backdrop">
+        <div class="modal-box kansels-modal">
+            <h3>Kansels overzicht</h3>
+            <div class="search-container">
+                <input type="text" id="kansels-search" placeholder="Zoek kansel...">
+            </div>
+            <div class="toggle-all-container">
+                <button id="toggle-all-on" class="toggle-all-btn">Alles aan</button>
+                <button id="toggle-all-off" class="toggle-all-btn">Alles uit</button>
+            </div>
+            <div class="kansels-list-container">
+                <ul id="kansels-list"></ul>
+            </div>
+            <div class="modal-actions">
+                <button id="close-kansels" class="modal-action-left">Sluiten</button>
+                <button id="confirm-kansels" class="modal-action-right">Bevestigen</button>
             </div>
         </div>
     </div>

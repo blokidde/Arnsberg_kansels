@@ -575,11 +575,218 @@ body {
     gap: 16px;
 }
 
+/* Larger modal for kansels list */
+.modal-box.kansels-modal {
+    max-width: 500px;
+    max-height: 80vh;
+}
+
 .modal-box h3 {
     color: #2c3e50;
     font-size: 18px;
     font-weight: 600;
     margin: 0 0 8px 0;
+}
+
+/* Search container styling */
+.search-container {
+    margin-bottom: 16px;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid rgba(52, 152, 219, 0.3);
+    border-radius: 8px;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+}
+
+.search-container input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Toggle all buttons container */
+.toggle-all-container {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.toggle-all-btn {
+    flex: 1;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#toggle-all-on {
+    background: #27ae60;
+    color: white;
+}
+
+#toggle-all-on:hover {
+    background: #229954;
+}
+
+#toggle-all-off {
+    background: #e74c3c;
+    color: white;
+}
+
+#toggle-all-off:hover {
+    background: #c0392b;
+}
+
+/* Kansels list container */
+.kansels-list-container {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 400px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 8px;
+}
+
+/* Kansels list styling */
+#kansels-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#kansels-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    border: 1px solid rgba(52, 152, 219, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+#kansels-list li:hover {
+    background: rgba(52, 152, 219, 0.1);
+    border-color: #3498db;
+    transform: translateY(-1px);
+}
+
+#kansels-list li.selected {
+    background: rgba(52, 152, 219, 0.2);
+    border-color: #3498db;
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.kansel-info {
+    flex: 1;
+}
+
+.kansel-name {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 4px;
+}
+
+.kansel-desc {
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+.kansel-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.center-kansel {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    background: #3498db;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.center-kansel:hover {
+    background: #2980b9;
+}
+
+.kansel-checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #3498db;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.kansel-checkbox.checked {
+    background: #3498db;
+    border-color: #2980b9;
+}
+
+.kansel-checkbox.checked::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Modal actions styling */
+.modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.modal-action-left {
+    background: #95a5a6;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.modal-action-left:hover {
+    background: #7f8c8d;
+}
+
+.modal-action-right {
+    background: #27ae60;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.modal-action-right:hover {
+    background: #229954;
 }
 
 /* Modal action buttons container */

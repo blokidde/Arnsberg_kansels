@@ -281,6 +281,162 @@ function openSightingModal(hutId) {
     document.getElementById("sighting-modal").classList.remove("hidden");
 }
 
+// Open kansels list modal
+// State for kansel visibility
+let kanselVisibilityState = [];
+
+// Open kansels list modal
+function openKanselsModal() {
+    const modal = document.getElementById('kansels-modal');
+    modal.classList.remove('hidden');
+    
+    // Initialize visibility state if not exists
+    if (kanselVisibilityState.length === 0) {
+        kanselVisibilityState = state.markers.map(() => true); // All visible by default
+    }
+    
+    populateKanselsList();
+}
+
+// Close kansels modal
+function closeKanselsModal() {
+    document.getElementById('kansels-modal').classList.add('hidden');
+}
+
+// Populate the kansels list with all markers
+function populateKanselsList() {
+    const kanselsList = document.getElementById('kansels-list');
+    kanselsList.innerHTML = '';
+
+    state.markers.forEach((markerData, index) => {
+        const listItem = document.createElement('li');
+        listItem.dataset.index = index;
+        
+        // Check if this kansel is selected for visibility
+        const isSelected = kanselVisibilityState[index] || false;
+        if (isSelected) {
+            listItem.classList.add('selected');
+        }
+        
+        listItem.innerHTML = `
+            <div class="kansel-info">
+                <div class="kansel-name">${markerData.name} ${markerData.number}</div>
+                <div class="kansel-desc">${markerData.desc || 'Geen beschrijving'}</div>
+            </div>
+            <div class="kansel-actions">
+                <button class="center-kansel" onclick="centerOnKansel(${index})">
+                    Centreer
+                </button>
+                <div class="kansel-checkbox ${isSelected ? 'checked' : ''}" onclick="toggleKanselSelection(${index})"></div>
+            </div>
+        `;
+        
+        // Add click handler for the entire list item (except buttons)
+        listItem.addEventListener('click', (e) => {
+            // Don't trigger if clicking on buttons
+            if (e.target.classList.contains('center-kansel') || e.target.classList.contains('kansel-checkbox')) {
+                return;
+            }
+            toggleKanselSelection(index);
+        });
+        
+        kanselsList.appendChild(listItem);
+    });
+}
+
+// Toggle kansel selection (checkbox)
+function toggleKanselSelection(index) {
+    // Toggle the state
+    kanselVisibilityState[index] = !kanselVisibilityState[index];
+    
+    // Update the UI
+    const listItem = document.querySelector(`#kansels-list li[data-index="${index}"]`);
+    const checkbox = listItem.querySelector('.kansel-checkbox');
+    
+    if (kanselVisibilityState[index]) {
+        listItem.classList.add('selected');
+        checkbox.classList.add('checked');
+    } else {
+        listItem.classList.remove('selected');
+        checkbox.classList.remove('checked');
+    }
+}
+
+// Center map on a specific kansel
+function centerOnKansel(index) {
+    const markerData = state.markers[index];
+    mapGlobal.setView([markerData.lat, markerData.lng], CONFIG.START_ZOOM);
+}
+
+// Toggle all kansels on
+function toggleAllKanselsOn() {
+    kanselVisibilityState = state.markers.map(() => true);
+    populateKanselsList();
+}
+
+// Toggle all kansels off
+function toggleAllKanselsOff() {
+    kanselVisibilityState = state.markers.map(() => false);
+    populateKanselsList();
+}
+
+// Apply visibility changes to the map
+function confirmKanselVisibility() {
+    // Go through all markers and show/hide based on selection
+    state.markers.forEach((markerData, index) => {
+        const shouldBeVisible = kanselVisibilityState[index];
+        
+        // Find the actual marker on the map
+        let mapMarker = null;
+        mapGlobal.eachLayer(layer => {
+            if (layer.markerData && layer.markerData === markerData) {
+                mapMarker = layer;
+            }
+        });
+        
+        if (mapMarker) {
+            if (shouldBeVisible) {
+                // Make sure marker is on the map
+                if (!mapGlobal.hasLayer(mapMarker)) {
+                    mapMarker.addTo(mapGlobal);
+                }
+            } else {
+                // Remove marker from map
+                if (mapGlobal.hasLayer(mapMarker)) {
+                    mapGlobal.removeLayer(mapMarker);
+                }
+            }
+        }
+    });
+    
+    // Close the modal
+    closeKanselsModal();
+}
+
+// Make functions globally accessible
+window.toggleKanselSelection = toggleKanselSelection;
+window.centerOnKansel = centerOnKansel;
+window.toggleAllKanselsOn = toggleAllKanselsOn;
+window.toggleAllKanselsOff = toggleAllKanselsOff;
+window.confirmKanselVisibility = confirmKanselVisibility;
+
+// Filter kansels list based on search input
+function filterKanselsList() {
+    const searchTerm = document.getElementById('kansels-search').value.toLowerCase();
+    const listItems = document.querySelectorAll('#kansels-list li');
+
+    listItems.forEach(item => {
+        const kanselName = item.querySelector('.kansel-name').textContent.toLowerCase();
+        const kanselDesc = item.querySelector('.kansel-desc').textContent.toLowerCase();
+        
+        if (kanselName.includes(searchTerm) || kanselDesc.includes(searchTerm)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
 /* =================================
    API METHODS
    ================================= */
@@ -824,6 +980,7 @@ function exitAllEditModes() {
     document.getElementById("report-choice-modal").classList.add("hidden");
     document.getElementById("sighting-modal").classList.add("hidden");
     document.getElementById("add-shot-modal").classList.add("hidden");
+    document.getElementById("kansels-modal").classList.add("hidden");
     
     // Clear any drawing state
     if (state.tempMarkers) {
@@ -989,6 +1146,12 @@ function setupEventHandlers(map) {
                 list.innerHTML = "<li>Kon leaderboard niet laden</li>";
             }
         })();
+    });
+
+    // Handle dropdown Kansels option
+    document.getElementById("dropdown-kansels").addEventListener("click", () => {
+        document.getElementById("menu-dropdown").classList.add("hidden");
+        openKanselsModal();
     });
 
     // Close dropdown when clicking outside
@@ -1159,6 +1322,31 @@ function setupEventHandlers(map) {
 
     document.getElementById("close-leaderboard").addEventListener("click", () => {
         document.getElementById("leaderboard-modal").classList.add("hidden");
+    });
+
+    // Close kansels modal
+    document.getElementById("close-kansels").addEventListener("click", () => {
+        closeKanselsModal();
+    });
+
+    // Confirm kansels visibility changes
+    document.getElementById("confirm-kansels").addEventListener("click", () => {
+        confirmKanselVisibility();
+    });
+
+    // Toggle all kansels on
+    document.getElementById("toggle-all-on").addEventListener("click", () => {
+        toggleAllKanselsOn();
+    });
+
+    // Toggle all kansels off
+    document.getElementById("toggle-all-off").addEventListener("click", () => {
+        toggleAllKanselsOff();
+    });
+
+    // Search functionality for kansels modal
+    document.getElementById("kansels-search").addEventListener("input", () => {
+        filterKanselsList();
     });
 
     // Rapportagekeuze
