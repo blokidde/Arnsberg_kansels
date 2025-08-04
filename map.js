@@ -893,11 +893,66 @@ function setupEventHandlers(map) {
     });
 
     // UI event handlers
-    console.log("Edit toggle geladen");
+    console.log("Menu handlers loaded");
 
-    // Toggle edit options menu - only shows edit options now
-    document.getElementById("toggle-edit").addEventListener("click", () => {
+    // Toggle hamburger dropdown menu
+    document.getElementById("menu-toggle").addEventListener("click", () => {
+        const dropdown = document.getElementById("menu-dropdown");
+        dropdown.classList.toggle("hidden");
+        
+        // Close edit options when opening dropdown
+        if (!dropdown.classList.contains("hidden")) {
+            document.getElementById("edit-options").classList.add("hidden");
+        }
+    });
+
+    // Close dropdown menu
+    document.getElementById("menu-close").addEventListener("click", () => {
+        document.getElementById("menu-dropdown").classList.add("hidden");
+    });
+
+    // Handle dropdown Edit option
+    document.getElementById("dropdown-edit").addEventListener("click", () => {
+        document.getElementById("menu-dropdown").classList.add("hidden");
         document.getElementById("edit-options").classList.toggle("hidden");
+    });
+
+    // Handle dropdown Leaderboard option
+    document.getElementById("dropdown-leaderboard").addEventListener("click", () => {
+        document.getElementById("menu-dropdown").classList.add("hidden");
+        // Show leaderboard modal
+        const modal = document.getElementById("leaderboard-modal");
+        const list = document.getElementById("leaderboard-list");
+        list.innerHTML = "<li>Laden…</li>";
+        modal.classList.remove("hidden");
+
+        // Load leaderboard data
+        (async () => {
+            try {
+                const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
+                const res = await apiFetch(`${CONFIG.API_URL}/leaderboard`, { headers });
+                const data = await res.json();
+                list.innerHTML = "";
+                data.forEach((entry, i) => {
+                    const li = document.createElement("li");
+                    li.textContent = `${i + 1}. ${entry.gebruiker} – ${entry.aantal}`;
+                    list.appendChild(li);
+                });
+            } catch (err) {
+                console.error("Fout bij laden leaderboard", err);
+                list.innerHTML = "<li>Kon leaderboard niet laden</li>";
+            }
+        })();
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", (e) => {
+        const menu = document.getElementById("floating-menu");
+        const dropdown = document.getElementById("menu-dropdown");
+        
+        if (!menu.contains(e.target) && !dropdown.classList.contains("hidden")) {
+            dropdown.classList.add("hidden");
+        }
     });
 
     // Show zone type selection
@@ -1031,28 +1086,6 @@ function setupEventHandlers(map) {
             }
         } catch (err) {
             alert("Fout bij opslaan: " + err.message);
-        }
-    });
-
-    document.getElementById("show-leaderboard").addEventListener("click", async () => {
-        const modal = document.getElementById("leaderboard-modal");
-        const list = document.getElementById("leaderboard-list");
-        list.innerHTML = "<li>Laden…</li>";
-        modal.classList.remove("hidden");
-
-        try {
-            const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
-            const res = await apiFetch(`${CONFIG.API_URL}/leaderboard`, { headers });
-            const data = await res.json();
-            list.innerHTML = "";
-            data.forEach((entry, i) => {
-                const li = document.createElement("li");
-                li.textContent = `${i + 1}. ${entry.gebruiker} – ${entry.aantal}`;
-                list.appendChild(li);
-            });
-        } catch (err) {
-            console.error("Fout bij laden leaderboard", err);
-            list.innerHTML = "<li>Kon leaderboard niet laden</li>";
         }
     });
 
