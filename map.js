@@ -1151,6 +1151,13 @@ function setupEventHandlers(map) {
     // Handle dropdown Leaderboard option
     document.getElementById("dropdown-leaderboard").addEventListener("click", () => {
         document.getElementById("menu-dropdown").classList.add("hidden");
+        
+        // Check if user is logged in before showing leaderboard
+        if (!isLoggedIn()) {
+            showLoginError();
+            return;
+        }
+        
         // Show leaderboard modal
         const modal = document.getElementById("leaderboard-modal");
         const list = document.getElementById("leaderboard-list");
