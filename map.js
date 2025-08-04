@@ -183,9 +183,9 @@ function setupMapControls(map) {
         L.DomEvent.on(locateCenterBtn, 'click', function (e) {
             L.DomEvent.stopPropagation(e);
             
-            // Center on existing marker without restarting watch
-            if (locationMarker) {
-                map.setView(locationMarker.getLatLng(), CONFIG.START_ZOOM);
+            // Center on existing arrow marker without restarting watch
+            if (locationDirectionMarker) {
+                map.setView(locationDirectionMarker.getLatLng(), CONFIG.START_ZOOM);
             }
         });
         
@@ -1240,31 +1240,25 @@ function setupEventHandlers(map) {
 
 // Create location marker with direction arrow
 function createLocationMarker(latlng, map) {
-    // Create the main location dot
-    locationMarker = L.circleMarker(latlng, {
-        radius: 8,
-        fillColor: '#4285F4',
-        color: '#ffffff',
-        weight: 2,
-        opacity: 1,
-        fillOpacity: 1
-    }).addTo(map);
-    
-    // Create the direction arrow if we have heading
+    // Only create the direction arrow - no separate location dot
     if (currentHeading !== null) {
         createDirectionArrow(latlng, currentHeading);
+    } else {
+        // If no heading yet, create a simple arrow pointing north as placeholder
+        createDirectionArrow(latlng, 0);
     }
 }
 
 // Update location marker position
 function updateLocationMarker(latlng) {
-    if (locationMarker) {
-        locationMarker.setLatLng(latlng);
-    }
-    
-    // Update direction arrow if we have heading
+    // Only update direction arrow - no separate location marker
     if (currentHeading !== null) {
         updateDirectionArrow(latlng, currentHeading);
+    } else {
+        // If no heading, just move the arrow to new position
+        if (locationDirectionMarker) {
+            locationDirectionMarker.setLatLng(latlng);
+        }
     }
 }
 
@@ -1395,8 +1389,8 @@ function handleOrientation(event) {
         }
         
         // Update direction arrow if location is available
-        if (locationMarker && currentHeading !== null) {
-            updateDirectionArrow(locationMarker.getLatLng(), currentHeading);
+        if (locationDirectionMarker && currentHeading !== null) {
+            updateDirectionArrow(locationDirectionMarker.getLatLng(), currentHeading);
         }
     }
 }
@@ -1408,15 +1402,14 @@ function stopLocationTracking(map) {
         locationWatchId = null;
     }
     
-    if (locationMarker !== null) {
-        map.removeLayer(locationMarker);
-        locationMarker = null;
-    }
-    
+    // Remove only the direction arrow (no separate location marker)
     if (locationDirectionMarker !== null) {
         map.removeLayer(locationDirectionMarker);
         locationDirectionMarker = null;
     }
+    
+    // Clean up any leftover location marker reference
+    locationMarker = null;
     
     // Stop compass tracking
     stopCompassTracking();
