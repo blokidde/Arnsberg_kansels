@@ -283,8 +283,8 @@ function openSightingModal(hutId) {
 
 // Open kansels list modal
 // State for kansel visibility
-let kanselVisibilityState = [];
-let kanselMarkerRefs = []; // Keep track of marker references
+let kanselVisibilityState = []; // Tracks which kansels are selected to be visible
+let kanselMarkerRefs = []; // Keep track of marker references to prevent loss when toggling visibility
 
 // Open kansels list modal
 function openKanselsModal() {
@@ -299,7 +299,7 @@ function openKanselsModal() {
     // Initialize marker references if not exists
     if (kanselMarkerRefs.length === 0) {
         kanselMarkerRefs = new Array(state.markers.length).fill(null);
-        // Find existing markers on the map
+        // Find existing markers on the map and store their references
         state.markers.forEach((markerData, index) => {
             mapGlobal.eachLayer(layer => {
                 if (layer.markerData && layer.markerData === markerData) {
@@ -347,7 +347,7 @@ function populateKanselsList() {
         
         // Add click handler for the entire list item (except buttons)
         listItem.addEventListener('click', (e) => {
-            // Don't trigger if clicking on buttons
+            // Don't trigger if clicking on buttons to prevent double-action
             if (e.target.classList.contains('center-kansel') || e.target.classList.contains('kansel-checkbox')) {
                 return;
             }
@@ -360,7 +360,7 @@ function populateKanselsList() {
 
 // Toggle kansel selection (checkbox)
 function toggleKanselSelection(index) {
-    // Ensure the visibility state array is properly sized
+    // Ensure the visibility state array is properly sized for dynamic marker additions
     while (kanselVisibilityState.length <= index) {
         kanselVisibilityState.push(true);
     }
@@ -406,7 +406,7 @@ function confirmKanselVisibility() {
         const shouldBeVisible = kanselVisibilityState[index];
         let mapMarker = kanselMarkerRefs[index];
         
-        // If marker doesn't exist, create it
+        // If marker doesn't exist, create it (handles cases where markers were removed)
         if (!mapMarker) {
             mapMarker = createMarkerElement(markerData, mapGlobal);
             kanselMarkerRefs[index] = mapMarker;
@@ -418,7 +418,7 @@ function confirmKanselVisibility() {
                 mapMarker.addTo(mapGlobal);
             }
         } else {
-            // Remove marker from map but keep reference
+            // Remove marker from map but keep reference for later re-addition
             if (mapGlobal.hasLayer(mapMarker)) {
                 mapGlobal.removeLayer(mapMarker);
             }
@@ -752,7 +752,7 @@ async function loadAndDisplayMarkers(map) {
             const marker = createMarkerElement(markerData, map);
             state.markers.push(markerData);
             
-            // Add to kansel tracking arrays if they exist
+            // Add to kansel tracking arrays if they exist (maintains consistency with modal)
             if (kanselVisibilityState.length > 0) {
                 kanselVisibilityState.push(true); // New markers are visible by default
                 kanselMarkerRefs.push(marker);
@@ -826,7 +826,7 @@ async function addNewMarker(event, map) {
         const marker = createMarkerElement(markerData, map);
         state.markers.push(markerData);
         
-        // Add to kansel tracking arrays if they exist
+        // Add to kansel tracking arrays if they exist (maintains consistency with modal)
         if (kanselVisibilityState.length > 0) {
             kanselVisibilityState.push(true); // New markers are visible by default
             kanselMarkerRefs.push(marker);
@@ -1132,7 +1132,7 @@ function setupEventHandlers(map) {
         if (!dropdown.classList.contains("hidden")) {
             document.getElementById("edit-options").classList.add("hidden");
             
-            // Exit all edit modes and close any active popups
+            // Exit all edit modes and close any active popups for clean state
             exitAllEditModes();
         }
     });
@@ -1187,6 +1187,7 @@ function setupEventHandlers(map) {
         const menu = document.getElementById("floating-menu");
         const dropdown = document.getElementById("menu-dropdown");
         
+        // Close dropdown if clicking outside the menu area
         if (!menu.contains(e.target) && !dropdown.classList.contains("hidden")) {
             dropdown.classList.add("hidden");
         }
@@ -1205,7 +1206,7 @@ function setupEventHandlers(map) {
     document.getElementById("mode-add").addEventListener("click", () => {
         if (!isLoggedIn()) {
             showLoginError();
-            state.hutMode = null; // Reset mode when login fails
+            state.hutMode = null; // Reset mode when login fails to prevent inconsistent state
             highlightModeButtons();
             return;
         }
@@ -1216,7 +1217,7 @@ function setupEventHandlers(map) {
     document.getElementById("mode-edit").addEventListener("click", () => {
         if (!isLoggedIn()) {
             showLoginError();
-            state.hutMode = null; // Reset mode when login fails
+            state.hutMode = null; // Reset mode when login fails to prevent inconsistent state
             highlightModeButtons();
             return;
         }
@@ -1227,7 +1228,7 @@ function setupEventHandlers(map) {
     document.getElementById("mode-delete").addEventListener("click", () => {
         if (!isLoggedIn()) {
             showLoginError();
-            state.hutMode = null; // Reset mode when login fails
+            state.hutMode = null; // Reset mode when login fails to prevent inconsistent state
             highlightModeButtons();
             return;
         }
@@ -1300,6 +1301,7 @@ function setupEventHandlers(map) {
         // Extra: stuur zichtwaarneming mee als die er nog is
         const sightingSpecies = document.getElementById('seenSpecies').value;
         if (sightingSpecies) {
+            // Submit sighting data along with shot data for complete record
             const sightingPayload = {
                 hut_id: hutId,
                 status: "wel-gezien",

@@ -558,6 +558,9 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 4000;
+    /* Prevent scrolling issues on mobile */
+    overflow: hidden;
+    touch-action: none;
 }
 
 /* Modal content box */
@@ -573,12 +576,17 @@ body {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    /* Allow scrolling within modal */
+    touch-action: auto;
+    overflow: hidden;
 }
 
 /* Larger modal for kansels list */
 .modal-box.kansels-modal {
     max-width: 500px;
     max-height: 80vh;
+    /* Optimize for mobile scrolling */
+    overflow: hidden;
 }
 
 .modal-box h3 {
@@ -653,6 +661,10 @@ body {
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.5);
     padding: 8px;
+    /* Improve touch scrolling on mobile */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
 }
 
 /* Kansels list styling */
@@ -674,6 +686,9 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     user-select: none;
+    /* Improve touch interaction on mobile */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 #kansels-list li:hover {
@@ -926,4 +941,148 @@ body {
 #continueToShot:hover {
     background: rgba(224, 224, 224, 0.95);
     transform: translateY(-1px);
+}
+
+/* =================================
+   MOBILE RESPONSIVE DESIGN
+   ================================= */
+
+/* Mobile breakpoint for phones and small tablets */
+@media screen and (max-width: 768px) {
+    /* Adjust floating menu positioning for mobile */
+    #floating-menu {
+        top: 12px;
+        right: 12px;
+        gap: 0;
+    }
+    
+    /* Make hamburger menu button larger and more touch-friendly */
+    #menu-toggle {
+        min-height: 48px;
+        min-width: 48px;
+        padding: 14px;
+        font-size: 18px;
+    }
+    
+    /* Adjust dropdown positioning for mobile */
+    #menu-dropdown {
+        top: 60px;
+        right: 0;
+        min-width: 140px;
+    }
+    
+    /* Make dropdown buttons more touch-friendly */
+    #menu-dropdown button,
+    #floating-menu #edit-options button {
+        padding: 14px 18px;
+        font-size: 16px;
+        min-height: 48px;
+    }
+    
+    /* Adjust login bar positioning for mobile */
+    #login-bar,
+    #logout-bar {
+        left: 12px;
+        bottom: 12px;
+        right: auto;
+        padding: 10px 14px;
+        max-width: calc(100vw - 24px);
+        box-sizing: border-box;
+    }
+    
+    /* Make login/logout buttons more touch-friendly */
+    #login-bar button,
+    #logout-bar button {
+        padding: 10px 14px;
+        font-size: 16px;
+        min-height: 44px;
+    }
+    
+    /* Ensure location controls are properly positioned and sized */
+    .location-control .locate-btn {
+        min-width: 48px;
+        min-height: 48px;
+        padding: 12px;
+        font-size: 18px;
+    }
+    
+    /* Adjust leaflet controls for mobile */
+    .leaflet-control-layers {
+        max-width: calc(100vw - 24px) !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Make leaflet layer control more touch-friendly */
+    .leaflet-control-layers-toggle {
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 18px !important;
+    }
+    
+    /* Improve leaflet layer control positioning */
+    .leaflet-bottom.leaflet-right {
+        bottom: 80px !important; /* Move above login bar */
+        right: 12px !important;
+    }
+    
+    /* Ensure touch-friendly interaction areas */
+    .leaflet-control-layers-list {
+        padding: 8px 12px !important;
+    }
+    
+    .leaflet-control-layers label {
+        font-size: 16px !important;
+        padding: 8px 0 !important;
+        min-height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    
+    /* Mobile-friendly modal sizing */
+    .modal-box {
+        width: 95%;
+        max-width: 95%;
+        padding: 20px;
+        margin: 20px;
+    }
+    
+    .modal-box.kansels-modal {
+        max-width: 95%;
+        max-height: 85vh;
+    }
+}
+
+/* Extra small mobile devices */
+@media screen and (max-width: 480px) {
+    /* Further adjust for very small screens */
+    #floating-menu {
+        top: 8px;
+        right: 8px;
+    }
+    
+    #login-bar,
+    #logout-bar {
+        left: 8px;
+        bottom: 8px;
+        padding: 8px 12px;
+    }
+    
+    /* Adjust leaflet controls for small screens */
+    .leaflet-bottom.leaflet-right {
+        bottom: 70px !important;
+        right: 8px !important;
+    }
+    
+    /* Ensure modals fit on small screens */
+    .modal-box {
+        width: 98%;
+        max-width: 98%;
+        padding: 16px;
+        margin: 10px;
+    }
+    
+    .modal-box.kansels-modal {
+        max-width: 98%;
+        max-height: 90vh;
+    }
 }
