@@ -14,7 +14,7 @@ const CONFIG = {
         [51.4215025017151, 7.89968490600586], // bottom right bound
         [51.4227863001803, 7.85419464111328]  // bottom left bound
     ],
-    MIN_ZOOM: 10, // Minimum allowed zoom level
+    MIN_ZOOM: 15, // Minimum allowed zoom level
     MAX_ZOOM: 17  // Maximum allowed zoom level
 };
 
@@ -126,16 +126,12 @@ function setupMapLayers(map) {
 
 // Setup map boundaries to restrict panning
 function setupMapBounds(map) {
-    // TEMPORARILY COMMENTED OUT FOR TESTING LOCATION FUNCTIONALITY
-    // Uncomment these lines after testing is complete
-    /*
     const bounds = L.latLngBounds(CONFIG.MAP_BOUNDS);
     map.setMaxBounds(bounds);
     // Ensure map stays within bounds when dragging
     map.on('drag', function () {
         map.panInsideBounds(bounds, { animate: false });
     });
-    */
 }
 
 // Setup map controls (location button, etc.)
@@ -1555,8 +1551,28 @@ async function loadWindOverlay(map) {
             },
             velocityScale: 0.005,
             maxVelocity: 15,
-            colorScale: ["rgb(240,248,255)", "rgb(220,238,255)", "rgb(200,228,255)", "rgb(180,218,255)", "rgb(160,208,255)", "rgb(140,198,255)", "rgb(120,188,255)", "rgb(100,178,255)", "rgb(80,168,255)", "rgb(60,158,255)", "rgb(40,148,255)", "rgb(20,138,255)", "rgb(0,128,255)", "rgb(0,118,235)", "rgb(0,108,215)"],
-            opacity: 0.5,
+            // Light grey color scale - uniform light grey tones for subtle wind visualization
+            // Wind strength is indicated by line density rather than color intensity
+            // Light grey color scale - uniform light grey tones for subtle wind visualization
+            // Wind strength is indicated by line density rather than color intensity
+            colorScale: [
+                "rgba(200,200,200,0.3)",   // Light grey, very transparent
+                "rgba(190,190,190,0.35)",  // 
+                "rgba(180,180,180,0.4)",   // 
+                "rgba(170,170,170,0.45)",  // 
+                "rgba(160,160,160,0.5)",   // 
+                "rgba(150,150,150,0.55)",  // 
+                "rgba(140,140,140,0.6)",   // 
+                "rgba(130,130,130,0.65)",  // 
+                "rgba(120,120,120,0.7)",   // 
+                "rgba(110,110,110,0.75)",  // 
+                "rgba(100,100,100,0.8)",   // 
+                "rgba(95,95,95,0.85)",     // 
+                "rgba(90,90,90,0.9)",      // 
+                "rgba(85,85,85,0.95)",     // 
+                "rgba(80,80,80,1.0)"       // Medium grey for strongest winds
+            ],
+            opacity: 0.25,  // Much lower opacity for subtlety
             data: windData
         });
 
