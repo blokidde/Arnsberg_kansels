@@ -3,7 +3,14 @@
    ================================= */
 
 /* Basic reset and global styling */
-html,
+html {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f7fafc;
+    -webkit-text-size-adjust: 100%;
+}
+
 body {
     height: 100%;
     margin: 0;
@@ -14,7 +21,19 @@ body {
 /* Full-screen map container */
 #map {
     width: 100%;
-    height: 100dvh;
+    height: 100vh;
+}
+
+@supports (height: 100dvh) {
+    #map {
+        height: 100dvh;
+    }
+}
+
+@supports (height: 100svh) {
+    #map {
+        height: 100svh;
+    }
 }
 
 /* Enable touch controls for mobile */
@@ -476,18 +495,22 @@ body {
 }
 
 /* Login form input styling */
-#login-container input {
+#login-container input,
+#login-container select,
+#login-container textarea {
     padding: 12px 16px;
     margin-bottom: 8px;
     border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.9);
-    font-size: 14px;
+    font-size: 16px; /* iOS: prevent zoom on focus */
     transition: all 0.2s ease;
     color: #2c3e50;
 }
 
-#login-container input:focus {
+#login-container input:focus,
+#login-container select:focus,
+#login-container textarea:focus {
     outline: none;
     border: 1px solid #3498db;
     background: rgba(255, 255, 255, 1);
@@ -1085,4 +1108,60 @@ body {
         max-width: 98%;
         max-height: 90vh;
     }
+}
+
+/* =================================
+   IOS KEYBOARD ZOOM PREVENTION
+   ================================= */
+
+/* CSS variables for safe areas */
+:root {
+    --safe-bottom: max(env(safe-area-inset-bottom), 12px);
+}
+
+/* iOS-specific input sizing to prevent zoom */
+@supports (-webkit-touch-callout: none) {
+    #login-container input,
+    #login-container select,
+    #login-container textarea,
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* Keyboard open state adjustments */
+.kb-open .leaflet-bottom.leaflet-right {
+    bottom: calc(80px + var(--safe-bottom)) !important;
+}
+
+.kb-open #floating-menu {
+    top: 10px;
+    right: 10px;
+}
+
+/* Ensure all form inputs across the app are 16px or larger */
+input,
+select,
+textarea,
+#shotSpecies,
+#shotGender,
+#shotWeight,
+#shotAge,
+#shotTime,
+#shotNotes,
+#seenSpecies,
+#seenCount,
+#seenMales,
+#seenFemales,
+#seenYoung,
+#seenTime,
+#username,
+#password,
+#reg-username,
+#reg-password,
+#reg-code,
+#kansels-search {
+    font-size: 16px !important;
 }

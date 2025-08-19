@@ -17,6 +17,18 @@ function isTokenValid() {
 
 // Event listener for DOM content loaded
 document.addEventListener("DOMContentLoaded", () => {
+    // Keyboard detection for mobile UI adjustments
+    document.addEventListener('focusin', (e) => {
+        if (e.target.matches('input, select, textarea')) {
+            document.body.classList.add('kb-open');
+        }
+    });
+    document.addEventListener('focusout', (e) => {
+        if (e.target.matches('input, select, textarea')) {
+            document.body.classList.remove('kb-open');
+        }
+    });
+
     // Get references to UI elements
     const showLoginBtn = document.getElementById("show-login-btn");
     const loginBar = document.getElementById("login-bar");
