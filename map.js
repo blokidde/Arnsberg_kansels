@@ -37,11 +37,18 @@ const state = {
     selectedZone: null, // Currently selected zone for editing
     editHandles: [],    // Array of drag handles for zone editing
     zoneId: 1,          // Counter for zone IDs
-    hutMode: null       // Current mode for hut interaction (add, edit, delete)
+    hutMode: null,      // Current mode for hut interaction (add, edit, delete)
+    layers: {}          // Store overlay layers like wind
 };
 
 // Global map reference for use across functions
 let mapGlobal;
+
+// Location tracking variables
+let locationMarker = null;   // behoud één marker
+let locationWatchId = null;  // id van map.locate({ watch:true })
+let locationDirectionMarker = null;  // richtingsindicator marker
+let currentHeading = null;   // huidige kompasrichting
 
 /* =================================
    AUTHENTICATION HELPERS
@@ -70,6 +77,7 @@ function getAuthHeaders() {
 // Initialize the Leaflet map with all required settings
 function initializeMap() {
     const map = L.map('map', {
+        preferCanvas: true,
         zoomControl: true,
         doubleClickZoom: true,
         scrollWheelZoom: true,
@@ -90,19 +98,28 @@ function initializeMap() {
 function setupMapLayers(map) {
     // Satellite imagery layer
     const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
-    // Light themed map layer
-    const light = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png');
+    // Topographic map with elevation data
+    const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        maxZoom: 17,
+        attribution: 'Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap'
+    });
 
-    // Add layer control to switch between map types
-    L.control.layers(
-        {
-            "Licht": light,
-            "Satelliet": satellite
-        },
-        null,
-        { position: 'bottomright' }
-    ).addTo(map);
+    // Base layers for switching between map types
+    const baseLayers = {
+        "Hoogte": topo,
+        "Satelliet": satellite
+    };
 
+    // Overlay layers (will be populated by wind layer)
+    const overlayLayers = {};
+
+    // Add layer control to switch between map types and overlays
+    const layerControl = L.control.layers(baseLayers, overlayLayers, { 
+        position: 'bottomright' 
+    }).addTo(map);
+
+    // Store layer control reference for adding overlays later
+    state.layerControl = layerControl;
 
     satellite.addTo(map);
 }
@@ -119,43 +136,88 @@ function setupMapBounds(map) {
 
 // Setup map controls (location button, etc.)
 function setupMapControls(map) {
-    // Create location button control
-    const locate = L.control({ position: 'topleft' });
-    locate.onAdd = function () {
-        const btn = L.DomUtil.create('button', 'locate-btn');
-        btn.innerHTML = 'Locatie';
-        // Handle location button click
-        L.DomEvent.on(btn, 'click', function (e) {
+    // Create custom location control with three buttons
+    const locationControl = L.control({ position: 'topleft' });
+    locationControl.onAdd = function () {
+        const container = L.DomUtil.create('div', 'location-control');
+        
+        // 📍 locate-once button
+        const locateOnceBtn = L.DomUtil.create('button', 'locate-btn locate-once-btn', container);
+        locateOnceBtn.innerHTML = '📍';
+        locateOnceBtn.title = 'Start locatie tracking';
+        
+        // 🎯 locate-center button (initially hidden)
+        const locateCenterBtn = L.DomUtil.create('button', 'locate-btn locate-center-btn hidden', container);
+        locateCenterBtn.innerHTML = '🎯';
+        locateCenterBtn.title = 'Centreer op huidige locatie';
+        
+        // ⏹️ stop button (initially hidden)
+        const stopBtn = L.DomUtil.create('button', 'locate-btn locate-stop-btn hidden', container);
+        stopBtn.innerHTML = '⏹️';
+        stopBtn.title = 'Stop locatie tracking';
+        
+        // Handle locate-once button click
+        L.DomEvent.on(locateOnceBtn, 'click', function (e) {
             L.DomEvent.stopPropagation(e);
-            map.locate({ setView: true, watch: true, enableHighAccuracy: true, maxZoom: CONFIG.START_ZOOM });
+            
+            // Start location watching if not already active
+            if (locationWatchId === null) {
+                locationWatchId = map.locate({ 
+                    watch: true,
+                    enableHighAccuracy: true,
+                    maximumAge: 30000,
+                    timeout: 15000
+                });
+                locateOnceBtn.classList.add('active');
+                
+                // Start listening for device orientation
+                startCompassTracking();
+            }
         });
-        return btn;
+        
+        // Handle locate-center button click
+        L.DomEvent.on(locateCenterBtn, 'click', function (e) {
+            L.DomEvent.stopPropagation(e);
+            
+            // Center on existing arrow marker without restarting watch
+            if (locationDirectionMarker) {
+                map.setView(locationDirectionMarker.getLatLng(), CONFIG.START_ZOOM);
+            }
+        });
+        
+        // Handle stop button click
+        L.DomEvent.on(stopBtn, 'click', function (e) {
+            L.DomEvent.stopPropagation(e);
+            stopLocationTracking(map);
+        });
+        
+        return container;
     };
-    locate.addTo(map);
+    locationControl.addTo(map);
 
     // Handle successful location finding
     map.on('locationfound', function (e) {
-        const heading = e.heading || 0;
-
-        const customIcon = L.divIcon({
-            className: 'custom-location-rotating',
-            iconSize: [24, 24]
-        });
-
-        if (map._locationMarker) {
-            map._locationMarker.setLatLng(e.latlng);
+        if (locationMarker === null) {
+            // First location fix: create location marker with direction arrow
+            createLocationMarker(e.latlng, map);
+            
+            map.setView(e.latlng, CONFIG.START_ZOOM);
+            
+            // Show the center and stop buttons
+            const centerBtn = document.querySelector('.locate-center-btn');
+            const stopBtn = document.querySelector('.locate-stop-btn');
+            if (centerBtn) centerBtn.classList.remove('hidden');
+            if (stopBtn) stopBtn.classList.remove('hidden');
         } else {
-            map._locationMarker = L.marker(e.latlng, {
-                icon: customIcon,
-                rotationAngle: heading
-            }).addTo(map);
+            // Subsequent updates: just move the marker smoothly
+            updateLocationMarker(e.latlng);
         }
-
-        // draai het element handmatig
-        const el = map._locationMarker.getElement();
-        if (el) {
-            el.style.transform = `rotate(${heading}deg)`;
-        }
+    });
+    
+    // Handle location errors
+    map.on('locationerror', function (e) {
+        alert('Locatie kon niet worden bepaald: ' + e.message);
+        locationWatchId = null;
     });
 }
 
@@ -198,13 +260,193 @@ function closeAddShotModal() {
 }
 
 function openReportChoiceModal(hutId) {
+    if (!isLoggedIn()) {
+        showLoginError();
+        return;
+    }
     document.getElementById('report-choice-modal').dataset.hutId = hutId;
     document.getElementById('report-choice-modal').classList.remove('hidden');
 }
 
 function openSightingModal(hutId) {
+    if (!isLoggedIn()) {
+        showLoginError();
+        return;
+    }
     document.getElementById("sighting-modal").dataset.hutId = hutId;
     document.getElementById("sighting-modal").classList.remove("hidden");
+}
+
+// Open kansels list modal
+// State for kansel visibility
+let kanselVisibilityState = []; // Tracks which kansels are selected to be visible
+let kanselMarkerRefs = []; // Keep track of marker references to prevent loss when toggling visibility
+
+// Open kansels list modal
+function openKanselsModal() {
+    const modal = document.getElementById('kansels-modal');
+    modal.classList.remove('hidden');
+    
+    // Initialize visibility state if not exists
+    if (kanselVisibilityState.length === 0) {
+        kanselVisibilityState = state.markers.map(() => true); // All visible by default
+    }
+    
+    // Initialize marker references if not exists
+    if (kanselMarkerRefs.length === 0) {
+        kanselMarkerRefs = new Array(state.markers.length).fill(null);
+        // Find existing markers on the map and store their references
+        state.markers.forEach((markerData, index) => {
+            mapGlobal.eachLayer(layer => {
+                if (layer.markerData && layer.markerData === markerData) {
+                    kanselMarkerRefs[index] = layer;
+                }
+            });
+        });
+    }
+    
+    populateKanselsList();
+}
+
+// Close kansels modal
+function closeKanselsModal() {
+    document.getElementById('kansels-modal').classList.add('hidden');
+}
+
+// Populate the kansels list with all markers
+function populateKanselsList() {
+    const kanselsList = document.getElementById('kansels-list');
+    kanselsList.innerHTML = '';
+
+    state.markers.forEach((markerData, index) => {
+        const listItem = document.createElement('li');
+        listItem.dataset.index = index;
+        
+        // Check if this kansel is selected for visibility
+        const isSelected = kanselVisibilityState[index] !== undefined ? kanselVisibilityState[index] : true;
+        if (isSelected) {
+            listItem.classList.add('selected');
+        }
+        
+        listItem.innerHTML = `
+            <div class="kansel-info">
+                <div class="kansel-name">${markerData.name} ${markerData.number}</div>
+                <div class="kansel-desc">${markerData.desc || 'Geen beschrijving'}</div>
+            </div>
+            <div class="kansel-actions">
+                <button class="center-kansel" onclick="centerOnKansel(${index})">
+                    Centreer
+                </button>
+                <div class="kansel-checkbox ${isSelected ? 'checked' : ''}" onclick="toggleKanselSelection(${index})"></div>
+            </div>
+        `;
+        
+        // Add click handler for the entire list item (except buttons)
+        listItem.addEventListener('click', (e) => {
+            // Don't trigger if clicking on buttons to prevent double-action
+            if (e.target.classList.contains('center-kansel') || e.target.classList.contains('kansel-checkbox')) {
+                return;
+            }
+            toggleKanselSelection(index);
+        });
+        
+        kanselsList.appendChild(listItem);
+    });
+}
+
+// Toggle kansel selection (checkbox)
+function toggleKanselSelection(index) {
+    // Ensure the visibility state array is properly sized for dynamic marker additions
+    while (kanselVisibilityState.length <= index) {
+        kanselVisibilityState.push(true);
+    }
+    
+    // Toggle the state
+    kanselVisibilityState[index] = !kanselVisibilityState[index];
+    
+    // Update the UI
+    const listItem = document.querySelector(`#kansels-list li[data-index="${index}"]`);
+    const checkbox = listItem.querySelector('.kansel-checkbox');
+    
+    if (kanselVisibilityState[index]) {
+        listItem.classList.add('selected');
+        checkbox.classList.add('checked');
+    } else {
+        listItem.classList.remove('selected');
+        checkbox.classList.remove('checked');
+    }
+}
+
+// Center map on a specific kansel
+function centerOnKansel(index) {
+    const markerData = state.markers[index];
+    mapGlobal.setView([markerData.lat, markerData.lng], CONFIG.START_ZOOM);
+}
+
+// Toggle all kansels on
+function toggleAllKanselsOn() {
+    kanselVisibilityState = state.markers.map(() => true);
+    populateKanselsList();
+}
+
+// Toggle all kansels off
+function toggleAllKanselsOff() {
+    kanselVisibilityState = state.markers.map(() => false);
+    populateKanselsList();
+}
+
+// Apply visibility changes to the map
+function confirmKanselVisibility() {
+    // Go through all markers and show/hide based on selection
+    state.markers.forEach((markerData, index) => {
+        const shouldBeVisible = kanselVisibilityState[index];
+        let mapMarker = kanselMarkerRefs[index];
+        
+        // If marker doesn't exist, create it (handles cases where markers were removed)
+        if (!mapMarker) {
+            mapMarker = createMarkerElement(markerData, mapGlobal);
+            kanselMarkerRefs[index] = mapMarker;
+        }
+        
+        if (shouldBeVisible) {
+            // Make sure marker is on the map
+            if (!mapGlobal.hasLayer(mapMarker)) {
+                mapMarker.addTo(mapGlobal);
+            }
+        } else {
+            // Remove marker from map but keep reference for later re-addition
+            if (mapGlobal.hasLayer(mapMarker)) {
+                mapGlobal.removeLayer(mapMarker);
+            }
+        }
+    });
+    
+    // Close the modal
+    closeKanselsModal();
+}
+
+// Make functions globally accessible
+window.toggleKanselSelection = toggleKanselSelection;
+window.centerOnKansel = centerOnKansel;
+window.toggleAllKanselsOn = toggleAllKanselsOn;
+window.toggleAllKanselsOff = toggleAllKanselsOff;
+window.confirmKanselVisibility = confirmKanselVisibility;
+
+// Filter kansels list based on search input
+function filterKanselsList() {
+    const searchTerm = document.getElementById('kansels-search').value.toLowerCase();
+    const listItems = document.querySelectorAll('#kansels-list li');
+
+    listItems.forEach(item => {
+        const kanselName = item.querySelector('.kansel-name').textContent.toLowerCase();
+        const kanselDesc = item.querySelector('.kansel-desc').textContent.toLowerCase();
+        
+        if (kanselName.includes(searchTerm) || kanselDesc.includes(searchTerm)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
 }
 
 /* =================================
@@ -505,6 +747,12 @@ async function loadAndDisplayMarkers(map) {
             console.log("Creating marker for:", markerData);
             const marker = createMarkerElement(markerData, map);
             state.markers.push(markerData);
+            
+            // Add to kansel tracking arrays if they exist (maintains consistency with modal)
+            if (kanselVisibilityState.length > 0) {
+                kanselVisibilityState.push(true); // New markers are visible by default
+                kanselMarkerRefs.push(marker);
+            }
         });
 
         console.log(`Loaded ${markersData.length} markers`);
@@ -573,6 +821,12 @@ async function addNewMarker(event, map) {
         // Create marker on the map
         const marker = createMarkerElement(markerData, map);
         state.markers.push(markerData);
+        
+        // Add to kansel tracking arrays if they exist (maintains consistency with modal)
+        if (kanselVisibilityState.length > 0) {
+            kanselVisibilityState.push(true); // New markers are visible by default
+            kanselMarkerRefs.push(marker);
+        }
 
         console.log("New marker added:", markerData);
     } catch (error) {
@@ -718,6 +972,64 @@ async function deleteSelectedZone(map) {
 }
 
 /* =================================
+   MODE HIGHLIGHTING FUNCTIONS
+   ================================= */
+
+// Update visual highlighting of mode buttons based on current mode
+function highlightModeButtons() {
+    // Remove active class from all mode buttons
+    document.querySelectorAll('#mode-add, #mode-edit, #mode-delete').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Add active class to current mode button
+    if (state.hutMode === 'add') {
+        document.getElementById('mode-add').classList.add('active');
+    } else if (state.hutMode === 'edit') {
+        document.getElementById('mode-edit').classList.add('active');
+    } else if (state.hutMode === 'delete') {
+        document.getElementById('mode-delete').classList.add('active');
+    }
+}
+
+// Exit all edit modes and close any active popups/modals
+function exitAllEditModes() {
+    // Reset hut mode
+    state.hutMode = null;
+    
+    // Update button highlighting
+    highlightModeButtons();
+    
+    // Close all modals/popups that might be open
+    document.getElementById("report-choice-modal").classList.add("hidden");
+    document.getElementById("sighting-modal").classList.add("hidden");
+    document.getElementById("add-shot-modal").classList.add("hidden");
+    document.getElementById("kansels-modal").classList.add("hidden");
+    
+    // Clear any drawing state
+    if (state.tempMarkers) {
+        state.tempMarkers.forEach(marker => map.removeLayer(marker));
+        state.tempMarkers = [];
+    }
+    if (state.tempLine) {
+        map.removeLayer(state.tempLine);
+        state.tempLine = null;
+    }
+    if (state.tempPolygon) {
+        map.removeLayer(state.tempPolygon);
+        state.tempPolygon = null;
+    }
+    state.drawingPoints = [];
+    
+    // Hide zone-related buttons
+    document.getElementById("zone-types").classList.add("hidden");
+    document.getElementById("confirm-zone").classList.add("hidden");
+    document.getElementById("delete-zone").classList.add("hidden");
+    
+    console.log("All edit modes exited and popups closed");
+}
+
+/* =================================
    DRAWING FUNCTIONS
    ================================= */
 
@@ -805,36 +1117,126 @@ function setupEventHandlers(map) {
     });
 
     // UI event handlers
-    console.log("Edit toggle geladen");
+    console.log("Menu handlers loaded");
 
-    // Toggle edit options menu
-    document.getElementById("toggle-edit").addEventListener("click", () => {
-        document.getElementById("edit-options").classList.toggle("hidden");
-        document.getElementById("legend-box").classList.add("hidden");
+    // Toggle hamburger dropdown menu
+    document.getElementById("menu-toggle").addEventListener("click", () => {
+        const dropdown = document.getElementById("menu-dropdown");
+        dropdown.classList.toggle("hidden");
+        
+        // Close edit options when opening dropdown
+        if (!dropdown.classList.contains("hidden")) {
+            document.getElementById("edit-options").classList.add("hidden");
+            
+            // Exit all edit modes and close any active popups for clean state
+            exitAllEditModes();
+        }
     });
 
-    // Toggle legend menu
-    document.getElementById("toggle-legend").addEventListener("click", () => {
-        document.getElementById("legend-box").classList.toggle("hidden");
-        document.getElementById("edit-options").classList.add("hidden");
+    // Handle dropdown Edit option
+    document.getElementById("dropdown-edit").addEventListener("click", () => {
+        document.getElementById("menu-dropdown").classList.add("hidden");
+        if (!isLoggedIn()) {
+            showLoginError();
+            exitAllEditModes(); // Reset all edit states when login fails
+            return;
+        }
+        document.getElementById("edit-options").classList.toggle("hidden");
+    });
+
+    // Handle dropdown Leaderboard option
+    document.getElementById("dropdown-leaderboard").addEventListener("click", () => {
+        document.getElementById("menu-dropdown").classList.add("hidden");
+        
+        // Check if user is logged in before showing leaderboard
+        if (!isLoggedIn()) {
+            showLoginError();
+            return;
+        }
+        
+        // Show leaderboard modal
+        const modal = document.getElementById("leaderboard-modal");
+        const list = document.getElementById("leaderboard-list");
+        list.innerHTML = "<li>Laden…</li>";
+        modal.classList.remove("hidden");
+
+        // Load leaderboard data
+        (async () => {
+            try {
+                const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
+                const res = await apiFetch(`${CONFIG.API_URL}/leaderboard`, { headers });
+                const data = await res.json();
+                list.innerHTML = "";
+                data.forEach((entry, i) => {
+                    const li = document.createElement("li");
+                    li.textContent = `${i + 1}. ${entry.gebruiker} – ${entry.aantal}`;
+                    list.appendChild(li);
+                });
+            } catch (err) {
+                console.error("Fout bij laden leaderboard", err);
+                list.innerHTML = "<li>Kon leaderboard niet laden</li>";
+            }
+        })();
+    });
+
+    // Handle dropdown Kansels option
+    document.getElementById("dropdown-kansels").addEventListener("click", () => {
+        document.getElementById("menu-dropdown").classList.add("hidden");
+        openKanselsModal();
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", (e) => {
+        const menu = document.getElementById("floating-menu");
+        const dropdown = document.getElementById("menu-dropdown");
+        
+        // Close dropdown if clicking outside the menu area
+        if (!menu.contains(e.target) && !dropdown.classList.contains("hidden")) {
+            dropdown.classList.add("hidden");
+        }
     });
 
     // Show zone type selection
     document.getElementById("add-zone").addEventListener("click", () => {
+        if (!isLoggedIn()) {
+            showLoginError();
+            return;
+        }
         document.getElementById("zone-types").classList.toggle("hidden");
     });
 
     // Hut interaction mode buttons
     document.getElementById("mode-add").addEventListener("click", () => {
+        if (!isLoggedIn()) {
+            showLoginError();
+            state.hutMode = null; // Reset mode when login fails to prevent inconsistent state
+            highlightModeButtons();
+            return;
+        }
         state.hutMode = "add";
+        highlightModeButtons();
     });
 
     document.getElementById("mode-edit").addEventListener("click", () => {
+        if (!isLoggedIn()) {
+            showLoginError();
+            state.hutMode = null; // Reset mode when login fails to prevent inconsistent state
+            highlightModeButtons();
+            return;
+        }
         state.hutMode = "edit";
+        highlightModeButtons();
     });
 
     document.getElementById("mode-delete").addEventListener("click", () => {
+        if (!isLoggedIn()) {
+            showLoginError();
+            state.hutMode = null; // Reset mode when login fails to prevent inconsistent state
+            highlightModeButtons();
+            return;
+        }
         state.hutMode = "delete";
+        highlightModeButtons();
     });
 
     // Zone type selection handler
@@ -902,6 +1304,7 @@ function setupEventHandlers(map) {
         // Extra: stuur zichtwaarneming mee als die er nog is
         const sightingSpecies = document.getElementById('seenSpecies').value;
         if (sightingSpecies) {
+            // Submit sighting data along with shot data for complete record
             const sightingPayload = {
                 hut_id: hutId,
                 status: "wel-gezien",
@@ -950,30 +1353,33 @@ function setupEventHandlers(map) {
         }
     });
 
-    document.getElementById("show-leaderboard").addEventListener("click", async () => {
-        const modal = document.getElementById("leaderboard-modal");
-        const list = document.getElementById("leaderboard-list");
-        list.innerHTML = "<li>Laden…</li>";
-        modal.classList.remove("hidden");
-
-        try {
-            const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
-            const res = await apiFetch(`${CONFIG.API_URL}/leaderboard`, { headers });
-            const data = await res.json();
-            list.innerHTML = "";
-            data.forEach((entry, i) => {
-                const li = document.createElement("li");
-                li.textContent = `${i + 1}. ${entry.gebruiker} – ${entry.aantal}`;
-                list.appendChild(li);
-            });
-        } catch (err) {
-            console.error("Fout bij laden leaderboard", err);
-            list.innerHTML = "<li>Kon leaderboard niet laden</li>";
-        }
-    });
-
     document.getElementById("close-leaderboard").addEventListener("click", () => {
         document.getElementById("leaderboard-modal").classList.add("hidden");
+    });
+
+    // Close kansels modal
+    document.getElementById("close-kansels").addEventListener("click", () => {
+        closeKanselsModal();
+    });
+
+    // Confirm kansels visibility changes
+    document.getElementById("confirm-kansels").addEventListener("click", () => {
+        confirmKanselVisibility();
+    });
+
+    // Toggle all kansels on
+    document.getElementById("toggle-all-on").addEventListener("click", () => {
+        toggleAllKanselsOn();
+    });
+
+    // Toggle all kansels off
+    document.getElementById("toggle-all-off").addEventListener("click", () => {
+        toggleAllKanselsOff();
+    });
+
+    // Search functionality for kansels modal
+    document.getElementById("kansels-search").addEventListener("input", () => {
+        filterKanselsList();
     });
 
     // Rapportagekeuze
@@ -1030,7 +1436,6 @@ function setupEventHandlers(map) {
             });
             alert("Waarneming opgeslagen");
             document.getElementById("sighting-modal").classList.add("hidden");
-            document.getElementById("sighting-form").reset();
         } catch (err) {
             alert("Fout bij opslaan waarneming");
             console.error(err);
@@ -1048,6 +1453,235 @@ function setupEventHandlers(map) {
         document.getElementById("sighting-modal").classList.remove("hidden");
     });
 
+}
+
+/* =================================
+   LOCATION UTILITIES
+   ================================= */
+
+// Create location marker with direction arrow
+function createLocationMarker(latlng, map) {
+    // Only create the direction arrow - no separate location dot
+    if (currentHeading !== null) {
+        createDirectionArrow(latlng, currentHeading);
+    } else {
+        // If no heading yet, create a simple arrow pointing north as placeholder
+        createDirectionArrow(latlng, 0);
+    }
+}
+
+// Update location marker position
+function updateLocationMarker(latlng) {
+    // Only update direction arrow - no separate location marker
+    if (currentHeading !== null) {
+        updateDirectionArrow(latlng, currentHeading);
+    } else {
+        // If no heading, just move the arrow to new position
+        if (locationDirectionMarker) {
+            locationDirectionMarker.setLatLng(latlng);
+        }
+    }
+}
+
+// Create direction arrow
+function createDirectionArrow(latlng, heading) {
+    if (locationDirectionMarker) {
+        mapGlobal.removeLayer(locationDirectionMarker);
+    }
+    
+    // Create custom direction icon (arrow pointing in heading direction)
+    const directionIcon = L.divIcon({
+        className: 'location-direction-icon',
+        html: `<div class="direction-arrow" style="transform: rotate(${heading}deg);">
+                 <div class="arrow-shape"></div>
+               </div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+    });
+    
+    locationDirectionMarker = L.marker(latlng, {
+        icon: directionIcon,
+        zIndexOffset: 1000
+    }).addTo(mapGlobal);
+}
+
+// Update direction arrow
+function updateDirectionArrow(latlng, heading) {
+    if (locationDirectionMarker) {
+        locationDirectionMarker.setLatLng(latlng);
+        const iconElement = locationDirectionMarker.getElement();
+        if (iconElement) {
+            const arrowDiv = iconElement.querySelector('.direction-arrow');
+            if (arrowDiv) {
+                arrowDiv.style.transform = `rotate(${heading}deg)`;
+            }
+        }
+    } else {
+        createDirectionArrow(latlng, heading);
+    }
+}
+
+// Load and display wind overlay from backend
+async function loadWindOverlay(map) {
+    try {
+        const headers = { ...NGROK_SKIP_HEADER };
+        const response = await fetch(`${CONFIG.API_URL}/wind/latest`, { headers });
+        
+        if (!response.ok) {
+            console.warn('Wind data unavailable:', response.status);
+            return;
+        }
+
+        const windData = await response.json();
+        console.log('Wind data loaded:', windData);
+
+        // Remove existing wind layer if present
+        if (state.layers.wind) {
+            map.removeLayer(state.layers.wind);
+            state.layerControl.removeLayer(state.layers.wind);
+        }
+
+        // Create wind velocity layer with proper configuration
+        state.layers.wind = L.velocityLayer({
+            displayValues: true,
+            displayOptions: {
+                velocityType: 'Wind',
+                displayPosition: 'bottomleft',
+                displayEmptyString: 'Geen wind data'
+            },
+            velocityScale: 0.005,
+            maxVelocity: 15,
+            // Light grey color scale - uniform light grey tones for subtle wind visualization
+            // Wind strength is indicated by line density rather than color intensity
+            // Light grey color scale - uniform light grey tones for subtle wind visualization
+            // Wind strength is indicated by line density rather than color intensity
+            colorScale: [
+                "rgba(200,200,200,0.3)",   // Light grey, very transparent
+                "rgba(190,190,190,0.35)",  // 
+                "rgba(180,180,180,0.4)",   // 
+                "rgba(170,170,170,0.45)",  // 
+                "rgba(160,160,160,0.5)",   // 
+                "rgba(150,150,150,0.55)",  // 
+                "rgba(140,140,140,0.6)",   // 
+                "rgba(130,130,130,0.65)",  // 
+                "rgba(120,120,120,0.7)",   // 
+                "rgba(110,110,110,0.75)",  // 
+                "rgba(100,100,100,0.8)",   // 
+                "rgba(95,95,95,0.85)",     // 
+                "rgba(90,90,90,0.9)",      // 
+                "rgba(85,85,85,0.95)",     // 
+                "rgba(80,80,80,1.0)"       // Medium grey for strongest winds
+            ],
+            opacity: 0.25,  // Much lower opacity for subtlety
+            data: windData
+        });
+
+        // Add to layer control so you can toggle it
+        state.layerControl.addOverlay(state.layers.wind, "Wind");
+
+        console.log('Wind overlay added to map');
+
+    } catch (error) {
+        console.error('Failed to load wind data:', error);
+    }
+}
+
+// Start tracking device compass/orientation
+function startCompassTracking() {
+    // Check if device orientation is supported
+    if (typeof DeviceOrientationEvent !== 'undefined') {
+        // Request permission for iOS devices
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            DeviceOrientationEvent.requestPermission()
+                .then(response => {
+                    if (response === 'granted') {
+                        window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+                        window.addEventListener('deviceorientation', handleOrientation, true);
+                    }
+                })
+                .catch(console.error);
+        } else {
+            // For Android and other devices
+            window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+            window.addEventListener('deviceorientation', handleOrientation, true);
+        }
+    }
+}
+
+// Stop tracking device compass/orientation
+function stopCompassTracking() {
+    window.removeEventListener('deviceorientationabsolute', handleOrientation, true);
+    window.removeEventListener('deviceorientation', handleOrientation, true);
+}
+
+// Handle device orientation change
+function handleOrientation(event) {
+    // Get compass heading (0-360 degrees)
+    let heading = event.webkitCompassHeading || event.alpha;
+    
+    if (heading !== null) {
+        // Normalize heading for different browsers
+        if (event.webkitCompassHeading) {
+            // iOS: webkitCompassHeading gives correct compass heading
+            currentHeading = heading;
+        } else if (event.alpha !== null) {
+            // Android: alpha needs to be inverted
+            currentHeading = 360 - heading;
+        }
+        
+        // Update direction arrow if location is available
+        if (locationDirectionMarker && currentHeading !== null) {
+            updateDirectionArrow(locationDirectionMarker.getLatLng(), currentHeading);
+        }
+    }
+}
+
+// Stop location tracking and clean up
+function stopLocationTracking(map) {
+    if (locationWatchId !== null) {
+        map.stopLocate();
+        locationWatchId = null;
+    }
+    
+    // Remove only the direction arrow (no separate location marker)
+    if (locationDirectionMarker !== null) {
+        map.removeLayer(locationDirectionMarker);
+        locationDirectionMarker = null;
+    }
+    
+    // Clean up any leftover location marker reference
+    locationMarker = null;
+    
+    // Stop compass tracking
+    stopCompassTracking();
+    currentHeading = null;
+    
+    // Hide the center and stop buttons, remove active class
+    const centerBtn = document.querySelector('.locate-center-btn');
+    const stopBtn = document.querySelector('.locate-stop-btn');
+    const locateBtn = document.querySelector('.locate-once-btn');
+    
+    if (centerBtn) centerBtn.classList.add('hidden');
+    if (stopBtn) stopBtn.classList.add('hidden');
+    if (locateBtn) locateBtn.classList.remove('active');
+}
+
+/* =================================
+   UI VISIBILITY MANAGEMENT
+   ================================= */
+
+// Update UI visibility based on login status
+function updateUIForLoginStatus() {
+    const isUserLoggedIn = isLoggedIn();
+    const leaderboardButton = document.getElementById('dropdown-leaderboard');
+    
+    if (leaderboardButton) {
+        if (isUserLoggedIn) {
+            leaderboardButton.style.display = 'flex'; // Show leaderboard button
+        } else {
+            leaderboardButton.style.display = 'none'; // Hide leaderboard button
+        }
+    }
 }
 
 /* =================================
@@ -1073,6 +1707,28 @@ async function init() {
     console.log("Loading markers...");
     await loadAndDisplayMarkers(map);
     await loadAndDisplayZones(map);
+
+    // Load wind overlay
+    console.log("Loading wind overlay...");
+    await loadWindOverlay(map);
+
+    // Setup automatic wind data refresh every hour
+    setInterval(async () => {
+        console.log("Refreshing wind data...");
+        await loadWindOverlay(map);
+    }, 60 * 60 * 1000); // 1 hour in milliseconds
+
+    // Update UI visibility based on initial login status
+    updateUIForLoginStatus();
+    
+    // Listen for login/logout events to update UI visibility
+    document.addEventListener('userLoggedIn', () => {
+        updateUIForLoginStatus();
+    });
+    
+    document.addEventListener('userLoggedOut', () => {
+        updateUIForLoginStatus();
+    });
 
     console.log("Map application initialized successfully");
 }
