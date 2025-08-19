@@ -1,5 +1,5 @@
 // API base URL for authentication endpoints
-const API_URL = "https://461a-2001-1c08-883-4400-f0c3-e205-3254-d3c3.ngrok-free.app";
+const API_URL = "https://ec9e59218665.ngrok-free.app/";
 
 // Function to check if the stored token is valid
 function isTokenValid() {
