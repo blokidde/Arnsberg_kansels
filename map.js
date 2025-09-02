@@ -78,7 +78,7 @@ function getAuthHeaders() {
 function initializeMap() {
     const map = L.map('map', {
         preferCanvas: true,
-        zoomControl: true,
+        zoomControl: false, // Disable zoom buttons but keep zoom functionality
         doubleClickZoom: true,
         scrollWheelZoom: true,
         boxZoom: true,

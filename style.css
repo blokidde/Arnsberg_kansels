@@ -1148,6 +1148,41 @@ body {
 }
 
 /* =================================
+   LEAFLET CONTROLS POSITIONING
+   ================================= */
+
+/* Hide zoom control buttons but keep zoom functionality */
+.leaflet-control-zoom {
+    display: none !important;
+}
+
+/* Fix attribution positioning on mobile */
+.leaflet-control-attribution {
+    position: fixed !important;
+    bottom: 8px !important;
+    right: 8px !important;
+    background: rgba(255, 255, 255, 0.8) !important;
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+    border-radius: 4px !important;
+    backdrop-filter: blur(4px) !important;
+    max-width: 200px !important;
+    text-align: right !important;
+}
+
+/* Fix layer control positioning */
+.leaflet-control-layers {
+    position: fixed !important;
+    bottom: 30px !important;
+    right: 8px !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-radius: 8px !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+}
+
+/* =================================
    MOBILE RESPONSIVE DESIGN
    ================================= */
 
@@ -1225,8 +1260,21 @@ body {
     
     /* Improve leaflet layer control positioning */
     .leaflet-bottom.leaflet-right {
-        bottom: 80px !important; /* Move above login bar */
-        right: 12px !important;
+        bottom: 30px !important; /* Fixed positioning for mobile */
+        right: 8px !important;
+    }
+    
+    /* Override fixed positioning for mobile screens */
+    .leaflet-control-attribution {
+        bottom: 8px !important;
+        right: 8px !important;
+        font-size: 10px !important;
+        max-width: 150px !important;
+    }
+    
+    .leaflet-control-layers {
+        bottom: 30px !important;
+        right: 8px !important;
     }
     
     /* Ensure touch-friendly interaction areas */
@@ -1273,7 +1321,19 @@ body {
     
     /* Adjust leaflet controls for small screens */
     .leaflet-bottom.leaflet-right {
-        bottom: 70px !important;
+        bottom: 30px !important;
+        right: 8px !important;
+    }
+    
+    .leaflet-control-attribution {
+        bottom: 8px !important;
+        right: 8px !important;
+        font-size: 9px !important;
+        max-width: 120px !important;
+    }
+    
+    .leaflet-control-layers {
+        bottom: 30px !important;
         right: 8px !important;
     }
     
@@ -1314,7 +1374,15 @@ body {
 
 /* Keyboard open state adjustments */
 .kb-open .leaflet-bottom.leaflet-right {
-    bottom: calc(80px + var(--safe-bottom)) !important;
+    bottom: 30px !important; /* Keep consistent positioning even when keyboard is open */
+}
+
+.kb-open .leaflet-control-attribution {
+    bottom: 8px !important;
+}
+
+.kb-open .leaflet-control-layers {
+    bottom: 30px !important;
 }
 
 .kb-open #floating-menu {
