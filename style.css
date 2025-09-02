@@ -846,6 +846,12 @@ body {
     transition: all 0.2s ease;
 }
 
+/* Hut add/edit specific buttons inherit existing styles */
+#hut-add-save, #hut-edit-save { background:#27ae60; color:#fff; }
+#hut-add-save:hover, #hut-edit-save:hover { background:#229954; }
+#hut-add-cancel, #hut-edit-cancel { background:#95a5a6; color:#fff; }
+#hut-add-cancel:hover, #hut-edit-cancel:hover { background:#7f8c8d; }
+
 /* Utility class for hiding elements */
 .hidden {
     display: none !important;

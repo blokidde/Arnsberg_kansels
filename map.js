@@ -2,21 +2,21 @@
    CONFIGURATION
    ================================= */
 
-// Application configuration: merge defaults with any global window.CONFIG override so we don't lose required fields
-const DEFAULT_CONFIG = {
-    API_URL: "https://ec9e59218665.ngrok-free.app",
-    START_COORDS: [51.4372855, 7.8781002],
-    START_ZOOM: 15,
+// Application configuration object containing API endpoints, map settings, and boundaries
+const CONFIG = {
+    API_URL: "https://ec9e59218665.ngrok-free.app", // Backend API URL
+    START_COORDS: [51.4372855, 7.8781002], // Initial map center coordinates (Arnsberg)
+    START_ZOOM: 15, // Initial zoom level
+    // Map boundary coordinates to restrict panning
     MAP_BOUNDS: [
-        [51.4486358805082, 7.85711288452149],
-        [51.4462895254982, 7.89839744567871],
-        [51.4215025017151, 7.89968490600586],
-        [51.4227863001803, 7.85419464111328]
+        [51.4486358805082, 7.85711288452149], // top left bound
+        [51.4462895254982, 7.89839744567871], // top right bound
+        [51.4215025017151, 7.89968490600586], // bottom right bound
+        [51.4227863001803, 7.85419464111328]  // bottom left bound
     ],
-    MIN_ZOOM: 15,
-    MAX_ZOOM: 17
+    MIN_ZOOM: 15, // Minimum allowed zoom level
+    MAX_ZOOM: 17  // Maximum allowed zoom level
 };
-const CONFIG = { ...DEFAULT_CONFIG, ...(window.CONFIG || {}) };
 
 // Header to skip ngrok browser warning
 const NGROK_SKIP_HEADER = { 'ngrok-skip-browser-warning': 'skip-browser-warning' };
@@ -54,33 +54,9 @@ let currentHeading = null;   // huidige kompasrichting
    AUTHENTICATION HELPERS
    ================================= */
 
-// Auth helpers
-function getAuthHeaders(){
-    const t = localStorage.getItem('token');
-    return t ? { Authorization: `Bearer ${t}` } : {};
-}
-async function apiAuthed(path, options={}) {
-    const url = `${(window.CONFIG||CONFIG).API_URL}${path}`;
-    const base = {
-        headers: {
-            ...getAuthHeaders(),
-            'ngrok-skip-browser-warning':'skip-browser-warning',
-            ...(options.headers||{})
-        },
-        method: options.method || 'GET',
-        body: options.body
-    };
-    const res = await fetch(url, base);
-    if(res.status === 401){
-        localStorage.removeItem('token');
-        localStorage.removeItem('username');
-        document.dispatchEvent(new CustomEvent('userLoggedOut'));
-        throw new Error('Unauthorized');
-    }
-    return res;
-}
-function isLoggedIn(){
-    return typeof window.isTokenValid === 'function' ? window.isTokenValid() : !!localStorage.getItem('token');
+// Check if user is currently logged in
+function isLoggedIn() {
+    return !!localStorage.getItem("token");
 }
 
 // Show error message when user tries to perform action without login
@@ -88,7 +64,11 @@ function showLoginError() {
     alert("Je bent niet ingelogd. Je kunt niet editen, toevoegen of verwijderen.");
 }
 
-// (duplicate getAuthHeaders removed; the version above is authoritative)
+// Get authentication headers for API requests
+function getAuthHeaders() {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 /* =================================
    MAP INITIALIZATION
@@ -96,16 +76,6 @@ function showLoginError() {
 
 // Initialize the Leaflet map with all required settings
 function initializeMap() {
-    // Validate essential config pieces to prevent Leaflet from receiving undefined
-    if (!Array.isArray(CONFIG.START_COORDS) || CONFIG.START_COORDS.length !== 2 ||
-        typeof CONFIG.START_COORDS[0] !== 'number' || typeof CONFIG.START_COORDS[1] !== 'number') {
-        console.warn('Invalid START_COORDS in CONFIG, falling back to default coords');
-        CONFIG.START_COORDS = [...DEFAULT_CONFIG.START_COORDS];
-    }
-    if (!Array.isArray(CONFIG.MAP_BOUNDS) || CONFIG.MAP_BOUNDS.length < 4) {
-        console.warn('Invalid MAP_BOUNDS in CONFIG, falling back to default bounds');
-        CONFIG.MAP_BOUNDS = [...DEFAULT_CONFIG.MAP_BOUNDS];
-    }
     const map = L.map('map', {
         preferCanvas: true,
         zoomControl: true,
@@ -278,9 +248,8 @@ async function apiFetch(url, options = {}) {
 function openAddShotModal(hutId) {
     const modal = document.getElementById('add-shot-modal');
     modal.dataset.hutId = hutId;
-    const now = new Date();
-    const localISO = new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,16);
-    document.getElementById('shotTime').value = localISO;
+    // Set current time as default shot time
+    document.getElementById('shotTime').value = new Date().toISOString().slice(0, 16);
     modal.classList.remove('hidden');
 }
 
@@ -411,7 +380,7 @@ function toggleKanselSelection(index) {
 // Center map on a specific kansel
 function centerOnKansel(index) {
     const markerData = state.markers[index];
-    mapGlobal.setView([markerData.lat, markerData.lng], mapGlobal.getZoom());
+    mapGlobal.setView([markerData.lat, markerData.lng], CONFIG.START_ZOOM);
 }
 
 // Toggle all kansels on
@@ -490,7 +459,7 @@ const api = {
     async testConnection() {
         const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
         try {
-            const res = await apiAuthed('/test-db');
+            const res = await apiFetch(`${CONFIG.API_URL}/test-db`, { headers });
             const text = await res.text();
             console.log("API connection test succeeded:", JSON.parse(text));
             return true;
@@ -503,9 +472,9 @@ const api = {
     // Save new hunting hut marker to database
     async saveMarker(markerData) {
         const headers = { ...getAuthHeaders(), "Content-Type": "application/json" };
-        const res = await apiAuthed('/hutjes', {
-            method: 'POST',
-            headers: { 'Content-Type':'application/json' },
+        const res = await apiFetch(`${CONFIG.API_URL}/hutjes`, {
+            method: "POST",
+            headers,
             body: JSON.stringify(markerData)
         });
         return res.json();
@@ -514,16 +483,16 @@ const api = {
     // Load all hunting hut markers from database
     async loadMarkers() {
         const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
-    const res = await apiAuthed('/hutjes');
+        const res = await apiFetch(`${CONFIG.API_URL}/hutjes`, { headers });
         return res.json(); // Returns empty array if no records
     },
 
     // Update existing hunting hut marker
     async updateMarker(markerId, markerData) {
         const headers = { ...getAuthHeaders(), "Content-Type": "application/json" };
-        const res = await apiAuthed(`/hutjes/${markerId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type':'application/json' },
+        const res = await apiFetch(`${CONFIG.API_URL}/hutjes/${markerId}`, {
+            method: "PUT",
+            headers,
             body: JSON.stringify(markerData)
         });
         return res.json();
@@ -532,16 +501,19 @@ const api = {
     // Delete hunting hut marker from database
     async deleteMarker(markerId) {
         const headers = { ...getAuthHeaders() };
-    const res = await apiAuthed(`/hutjes/${markerId}`, { method:'DELETE' });
+        const res = await apiFetch(`${CONFIG.API_URL}/hutjes/${markerId}`, {
+            method: "DELETE",
+            headers
+        });
         return res.json();
     },
 
     // Save new zone to database
     async saveZone(zone) {
         const headers = { ...getAuthHeaders(), "Content-Type": "application/json" };
-        const res = await apiAuthed('/zones', {
-            method: 'POST',
-            headers: { 'Content-Type':'application/json' },
+        const res = await apiFetch(`${CONFIG.API_URL}/zones`, {
+            method: "POST",
+            headers,
             body: JSON.stringify(zone)
         });
         return res.json();
@@ -550,16 +522,16 @@ const api = {
     // Load all zones from database
     async loadZones() {
         const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
-    const res = await apiAuthed('/zones');
+        const res = await apiFetch(`${CONFIG.API_URL}/zones`, { headers });
         return res.json();
     },
 
     // Update existing zone
     async updateZone(zoneId, zoneData) {
         const headers = { ...getAuthHeaders(), "Content-Type": "application/json" };
-        const res = await apiAuthed(`/zones/${zoneId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type':'application/json' },
+        const res = await apiFetch(`${CONFIG.API_URL}/zones/${zoneId}`, {
+            method: "PUT",
+            headers,
             body: JSON.stringify(zoneData)
         });
         return res.json();
@@ -568,14 +540,18 @@ const api = {
     // Delete zone from database
     async deleteZone(zoneId) {
         const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
-    const res = await apiAuthed(`/zones/${zoneId}`, { method:'DELETE' });
+        const res = await apiFetch(`${CONFIG.API_URL}/zones/${zoneId}`, {
+            method: "DELETE",
+            headers
+        });
         return res.json();
     },
 
     // Load all shots for a specific hut
     async loadSchoten(hutId) {
         const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
-    const res = await apiAuthed(`/schoten?hut_id=${hutId}`);
+        const url = `${CONFIG.API_URL}/schoten?hut_id=${hutId}`;
+        const res = await apiFetch(url, { headers });
         return res.json(); // Returns array of shot objects
     },
 };
@@ -732,7 +708,11 @@ async function showMarkerPopup(event, markerData, map) {
                 if (!confirm("Weet je zeker dat je dit schot wilt verwijderen?")) return;
 
                 try {
-                    const res = await apiAuthed(`/schoten/${btn.dataset.id}`, { method:'DELETE' });
+                    const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
+                    const res = await apiFetch(`${CONFIG.API_URL}/schoten/${btn.dataset.id}`, {
+                        method: "DELETE",
+                        headers
+                    });
                     if (!res.ok) throw new Error("Delete mislukt");
 
                     // Refresh popup om bijgewerkte lijst te tonen
@@ -1028,15 +1008,15 @@ function exitAllEditModes() {
     
     // Clear any drawing state
     if (state.tempMarkers) {
-        state.tempMarkers.forEach(marker => mapGlobal.removeLayer(marker));
+        state.tempMarkers.forEach(marker => map.removeLayer(marker));
         state.tempMarkers = [];
     }
     if (state.tempLine) {
-        mapGlobal.removeLayer(state.tempLine);
+        map.removeLayer(state.tempLine);
         state.tempLine = null;
     }
     if (state.tempPolygon) {
-        mapGlobal.removeLayer(state.tempPolygon);
+        map.removeLayer(state.tempPolygon);
         state.tempPolygon = null;
     }
     state.drawingPoints = [];
@@ -1183,7 +1163,8 @@ function setupEventHandlers(map) {
         // Load leaderboard data
         (async () => {
             try {
-                const res = await apiAuthed('/leaderboard');
+                const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
+                const res = await apiFetch(`${CONFIG.API_URL}/leaderboard`, { headers });
                 const data = await res.json();
                 list.innerHTML = "";
                 data.forEach((entry, i) => {
@@ -1335,11 +1316,11 @@ function setupEventHandlers(map) {
                 tijd: document.getElementById("seenTime").value
             };
             try {
-                                await apiAuthed('/sessies', {
-                                    method:'POST',
-                                    headers:{ 'Content-Type':'application/json' },
-                                    body: JSON.stringify(sightingPayload)
-                                });
+                await fetch(`${CONFIG.API_URL}/sessies`, {
+                    method: "POST",
+                    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+                    body: JSON.stringify(sightingPayload)
+                });
             } catch (err) {
                 console.error("Zichtwaarneming niet opgeslagen", err);
             }
@@ -1347,11 +1328,11 @@ function setupEventHandlers(map) {
 
         try {
             // Submit shot data to server
-                        const res = await apiAuthed('/schoten', {
-                            method:'POST',
-                            headers:{ 'Content-Type':'application/json' },
-                            body: JSON.stringify(payload)
-                        });
+            const res = await fetch(`${CONFIG.API_URL}/schoten`, {
+                method: 'POST',
+                headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
             if (!res.ok) throw new Error(await res.text());
 
             closeAddShotModal();
@@ -1415,11 +1396,11 @@ function setupEventHandlers(map) {
                     status: "niet-gezien",
                     timestamp: new Date().toISOString()
                 };
-                                apiAuthed('/sessies', {
-                                    method:'POST',
-                                    headers:{ 'Content-Type':'application/json' },
-                                    body: JSON.stringify(payload)
-                                }).then(() => alert("Rapportage opgeslagen"));
+                fetch(`${CONFIG.API_URL}/sessies`, {
+                    method: "POST",
+                    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                }).then(() => alert("Rapportage opgeslagen"));
             } else if (choice === "wel-gezien") {
                 openSightingModal(hutId);
             }
@@ -1448,11 +1429,11 @@ function setupEventHandlers(map) {
             tijd: document.getElementById("seenTime").value
         };
         try {
-                        await apiAuthed('/sessies', {
-                            method:'POST',
-                            headers:{ 'Content-Type':'application/json' },
-                            body: JSON.stringify(payload)
-                        });
+            await fetch(`${CONFIG.API_URL}/sessies`, {
+                method: "POST",
+                headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
             alert("Waarneming opgeslagen");
             document.getElementById("sighting-modal").classList.add("hidden");
         } catch (err) {
@@ -1543,7 +1524,8 @@ function updateDirectionArrow(latlng, heading) {
 // Load and display wind overlay from backend
 async function loadWindOverlay(map) {
     try {
-    const response = await apiAuthed('/wind/latest');
+        const headers = { ...NGROK_SKIP_HEADER };
+        const response = await fetch(`${CONFIG.API_URL}/wind/latest`, { headers });
         
         if (!response.ok) {
             console.warn('Wind data unavailable:', response.status);

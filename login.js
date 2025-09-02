@@ -11,6 +11,30 @@ function isTokenValid() {
 }
 window.isTokenValid = isTokenValid;
 
+// Pre-expiry logout warning (1 minute before)
+let tokenExpiryTimer = null;
+function scheduleTokenExpiryCheck(){
+    if(tokenExpiryTimer) clearTimeout(tokenExpiryTimer);
+    const t = localStorage.getItem('token');
+    if(!t) return;
+    try {
+        const payload = JSON.parse(base64UrlDecode(t.split('.')[1]));
+        const expMs = payload.exp * 1000;
+        const warnAt = expMs - 60*1000;
+        const now = Date.now();
+        if(warnAt <= now){ doAutoLogout(); return; }
+        tokenExpiryTimer = setTimeout(()=>{
+            alert('Je sessie verloopt bijna en je wordt uitgelogd. Log opnieuw in om verder te gaan.');
+            doAutoLogout();
+        }, warnAt - now);
+    } catch {}
+}
+function doAutoLogout(){
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    document.dispatchEvent(new CustomEvent('userLoggedOut'));
+}
+
 // Event listener for DOM content loaded
 document.addEventListener("DOMContentLoaded", () => {
     // Keyboard detection for mobile UI adjustments
@@ -93,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 method: "POST",
                 headers: {
             "Content-Type": "application/x-www-form-urlencoded",
-            "ngrok-skip-browser-warning":"skip-browser-warning"
+            ...(window.CONFIG.NGROK_SKIP_HEADER || {})
                 },
                 body: new URLSearchParams({
                     username,
@@ -115,6 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Update UI state and dispatch login event
             updateLoginState();
             document.dispatchEvent(new CustomEvent("userLoggedIn", { detail: data.access_token }));
+            scheduleTokenExpiryCheck();
 
         } catch (err) {
             alert("Fout bij inloggen");
@@ -134,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 method: "POST",
                 headers: {
             "Content-Type": "application/json",
-            "ngrok-skip-browser-warning":"skip-browser-warning"
+            ...(window.CONFIG.NGROK_SKIP_HEADER || {})
                 },
                 body: JSON.stringify({
                     username,
@@ -158,6 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Update UI state and dispatch login event
             updateLoginState();
             document.dispatchEvent(new CustomEvent("userLoggedIn", { detail: data.access_token }));
+            scheduleTokenExpiryCheck();
 
         } catch (err) {
             alert("Fout bij registratie");
@@ -173,5 +199,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // Update UI state and dispatch logout event
         updateLoginState();
         document.dispatchEvent(new CustomEvent("userLoggedOut"));
+        if(tokenExpiryTimer) clearTimeout(tokenExpiryTimer);
     });
+
+    // Schedule on load if already logged in
+    if(isTokenValid()) scheduleTokenExpiryCheck();
 });

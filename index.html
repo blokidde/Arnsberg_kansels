@@ -62,10 +62,10 @@
         </div>
     </div>
     
-    <!-- Leaderboard modal (moved back to floating menu area) -->
-    <div id="leaderboard-modal" class="hidden modal-backdrop">
-        <div class="modal-box">
-            <h3>Top schutters</h3>
+    <!-- Leaderboard modal (accessible) -->
+    <div id="leaderboard-modal" class="hidden modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="leaderboard-title">
+        <div class="modal-box" tabindex="-1">
+            <h3 id="leaderboard-title">Top schutters</h3>
             <ul id="leaderboard-list"></ul>
             <div class="modal-actions">
                 <button id="close-leaderboard">Sluiten</button>
@@ -74,9 +74,9 @@
     </div>
 
     <!-- Kansels list modal -->
-    <div id="kansels-modal" class="hidden modal-backdrop">
-        <div class="modal-box kansels-modal">
-            <h3>Kansels overzicht</h3>
+    <div id="kansels-modal" class="hidden modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="kansels-title">
+        <div class="modal-box kansels-modal" tabindex="-1">
+            <h3 id="kansels-title">Kansels overzicht</h3>
             <div class="search-container">
                 <input type="text" id="kansels-search" placeholder="Zoek kansel...">
             </div>
@@ -93,9 +93,9 @@
             </div>
         </div>
     </div>
-    <div id="report-choice-modal" class="hidden modal-backdrop">
-        <div class="modal-box">
-            <h3>Wat wil je rapporteren?</h3>
+    <div id="report-choice-modal" class="hidden modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="report-choice-title">
+        <div class="modal-box" tabindex="-1">
+            <h3 id="report-choice-title">Wat wil je rapporteren?</h3>
             <button class="report-choice-btn" data-choice="niet-gezien">niks gezien</button>
             <button class="report-choice-btn" data-choice="wel-gezien">Wel iets gezien</button>
             <div class="modal-actions">
@@ -103,9 +103,9 @@
             </div>
         </div>
     </div>
-    <div id="sighting-modal" class="hidden modal-backdrop">
-        <div class="modal-box">
-            <h3>Wat heb je gezien?</h3>
+    <div id="sighting-modal" class="hidden modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="sighting-title">
+        <div class="modal-box" tabindex="-1">
+            <h3 id="sighting-title">Wat heb je gezien?</h3>
 
             <form id="sighting-form">
                 <label>
@@ -130,9 +130,9 @@
             </form>
         </div>
     </div>
-    <div id="add-shot-modal" class="hidden modal-backdrop">
-        <div class="modal-box">
-            <h3>Registreer geschoten dier</h3>
+    <div id="add-shot-modal" class="hidden modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="add-shot-title">
+        <div class="modal-box" tabindex="-1">
+            <h3 id="add-shot-title">Registreer geschoten dier</h3>
 
             <form id="add-shot-form">
                 <label>
@@ -181,11 +181,41 @@
             </form>
         </div>
     </div>
+        <!-- Hut toevoegen modal -->
+        <div id="hut-add-modal" class="hidden modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="hut-add-title">
+            <div class="modal-box" tabindex="-1">
+                <h3 id="hut-add-title">Hut toevoegen</h3>
+                <form id="hut-add-form">
+                    <label>Naam <input type="text" id="hut-add-name" required></label>
+                    <label>Nummer <input type="text" id="hut-add-number" required></label>
+                    <label>Beschrijving <textarea id="hut-add-desc" rows="3"></textarea></label>
+                    <div class="modal-actions">
+                        <button type="button" id="hut-add-cancel">Annuleer</button>
+                        <button type="submit" id="hut-add-save">Opslaan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Hut bewerken modal -->
+        <div id="hut-edit-modal" class="hidden modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="hut-edit-title">
+            <div class="modal-box" tabindex="-1">
+                <h3 id="hut-edit-title">Hut bewerken</h3>
+                <form id="hut-edit-form">
+                    <input type="hidden" id="hut-edit-id">
+                    <label>Naam <input type="text" id="hut-edit-name" required></label>
+                    <label>Nummer <input type="text" id="hut-edit-number" required></label>
+                    <label>Beschrijving <textarea id="hut-edit-desc" rows="3"></textarea></label>
+                    <div class="modal-actions">
+                        <button type="button" id="hut-edit-cancel">Annuleer</button>
+                        <button type="submit" id="hut-edit-save">Opslaan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/leaflet-velocity@1.6.0/dist/leaflet-velocity.min.js"></script>
-        <script>
-            window.CONFIG = { API_URL: "https://ec9e59218665.ngrok-free.app" };
-        </script>
+        <script src="config.js"></script>
         <script src="map.js"></script>
         <script src="login.js"></script>
 </body>
