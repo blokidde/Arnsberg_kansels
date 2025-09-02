@@ -105,14 +105,14 @@ body {
 
 /* Active location tracking styling */
 .locate-once-btn.active {
-    background: rgba(46, 204, 113, 0.95);
+    background: linear-gradient(135deg, #4f7f55, #3e6644); /* Muted success */
     color: white;
-    box-shadow: 0 4px 20px rgba(46, 204, 113, 0.3);
+    box-shadow: 0 4px 20px rgba(79, 127, 85, 0.3);
 }
 
 .locate-once-btn.active:hover {
-    background: rgba(39, 174, 96, 1);
-    box-shadow: 0 6px 25px rgba(46, 204, 113, 0.4);
+    background: linear-gradient(135deg, #466f4b, #35543a);
+    box-shadow: 0 6px 25px rgba(79, 127, 85, 0.4);
 }
 
 /* Hide center and stop buttons initially */
@@ -204,14 +204,14 @@ body {
 .vertex-handle {
     width: 12px;
     height: 12px;
-    background: #2196f3;
+    background: #447aa0; /* Muted blue */
     border: 2px solid white;
     border-radius: 50%;
     transition: background 0.2s;
 }
 
 .vertex-handle:hover {
-    background: #43a047;
+    background: #4f7f55; /* Muted green */
 }
 
 /* =================================
@@ -252,8 +252,8 @@ body {
 }
 
 #menu-toggle:hover {
-    background: rgba(52, 152, 219, 0.1);
-    color: #3498db;
+    background: rgba(68, 122, 160, 0.08); /* Muted blue hover */
+    color: #447aa0;
     transform: none;
 }
 
@@ -291,8 +291,8 @@ body {
 }
 
 #menu-dropdown button:hover {
-    background: rgba(52, 152, 219, 0.1);
-    color: #3498db;
+    background: rgba(68, 122, 160, 0.08); /* Muted blue hover */
+    color: #447aa0;
 }
 
 /* Floating menu button styling (for edit options) */
@@ -324,20 +324,20 @@ body {
 }
 
 #floating-menu #edit-options button:hover {
-    background: rgba(52, 152, 219, 0.1);
-    color: #3498db;
+    background: rgba(68, 122, 160, 0.08); /* Muted blue hover */
+    color: #447aa0;
 }
 
 /* Active mode button styling */
 #floating-menu #edit-options button.active {
-    background: rgba(46, 204, 113, 0.15);
-    color: #27ae60;
+    background: rgba(79, 127, 85, 0.12); /* Muted green active */
+    color: #4f7f55;
     font-weight: 600;
 }
 
 #floating-menu #edit-options button.active:hover {
-    background: rgba(46, 204, 113, 0.25);
-    color: #229954;
+    background: rgba(79, 127, 85, 0.18);
+    color: #466f4b;
 }
 
 /* Edit options container */
@@ -458,8 +458,8 @@ body {
 
 #login-bar button:hover,
 #logout-bar button:hover {
-    background: rgba(52, 152, 219, 0.1);
-    color: #3498db;
+    background: rgba(68, 122, 160, 0.08); /* Muted blue hover */
+    color: #447aa0;
     text-decoration: none;
 }
 
@@ -512,14 +512,14 @@ body {
 #login-container select:focus,
 #login-container textarea:focus {
     outline: none;
-    border: 1px solid #3498db;
+    border: 1px solid #447aa0; /* Muted blue focus */
     background: rgba(255, 255, 255, 1);
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    box-shadow: 0 0 0 3px rgba(68, 122, 160, 0.1);
 }
 
 /* Login form button styling */
 #login-container button {
-    background: #3498db;
+    background: #447aa0; /* Muted blue primary */
     color: #fff;
     border: none;
     padding: 12px 16px;
@@ -527,13 +527,13 @@ body {
     font-weight: 500;
     font-size: 14px;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+    box-shadow: 0 4px 12px rgba(68, 122, 160, 0.3);
     cursor: pointer;
 }
 
 #login-container button:hover {
-    background: #2980b9;
-    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+    background: #3d6c8d; /* Muted blue hover */
+    box-shadow: 0 6px 20px rgba(68, 122, 160, 0.4);
     transform: translateY(-1px);
 }
 
@@ -541,7 +541,7 @@ body {
 .switch-link {
     background-color: transparent;
     border: none;
-    color: #3498db;
+    color: #447aa0; /* Muted blue link */
     font-size: 14px;
     cursor: pointer;
     padding: 8px 0;
@@ -550,7 +550,7 @@ body {
 }
 
 .switch-link:hover {
-    color: #2980b9;
+    color: #3d6c8d; /* Muted blue hover */
 }
 
 /* =================================
@@ -627,7 +627,7 @@ body {
 .search-container input {
     width: 100%;
     padding: 12px 16px;
-    border: 2px solid rgba(52, 152, 219, 0.3);
+    border: 2px solid rgba(68, 122, 160, 0.3); /* Muted blue border */
     border-radius: 8px;
     font-size: 14px;
     background: rgba(255, 255, 255, 0.9);
@@ -637,8 +637,8 @@ body {
 
 .search-container input:focus {
     outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    border-color: #447aa0; /* Muted blue focus */
+    box-shadow: 0 0 0 3px rgba(68, 122, 160, 0.1);
 }
 
 /* Toggle all buttons container */
@@ -659,21 +659,29 @@ body {
 }
 
 #toggle-all-on {
-    background: #27ae60;
-    color: white;
+    /* Muted success (consistent with save buttons) */
+    background: linear-gradient(135deg, #4f7f55, #3e6644);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 2px 4px rgba(40,70,40,0.25);
 }
 
 #toggle-all-on:hover {
-    background: #229954;
+    background: linear-gradient(135deg, #466f4b, #35543a);
+    box-shadow: 0 3px 6px rgba(40,70,40,0.35);
 }
 
 #toggle-all-off {
-    background: #e74c3c;
-    color: white;
+    /* Muted danger (consistent with cancel buttons) */
+    background: linear-gradient(135deg, #b75a52, #9a3f36);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 2px 4px rgba(90,40,35,0.25);
 }
 
 #toggle-all-off:hover {
-    background: #c0392b;
+    background: linear-gradient(135deg, #a24f47, #87372f);
+    box-shadow: 0 3px 6px rgba(90,40,35,0.35);
 }
 
 /* Kansels list container */
@@ -705,7 +713,7 @@ body {
     margin-bottom: 8px;
     background: rgba(255, 255, 255, 0.8);
     border-radius: 8px;
-    border: 1px solid rgba(52, 152, 219, 0.2);
+    border: 1px solid rgba(68, 122, 160, 0.2); /* Muted blue border */
     cursor: pointer;
     transition: all 0.3s ease;
     user-select: none;
@@ -715,15 +723,15 @@ body {
 }
 
 #kansels-list li:hover {
-    background: rgba(52, 152, 219, 0.1);
-    border-color: #3498db;
+    background: rgba(68, 122, 160, 0.08); /* Muted blue hover */
+    border-color: #447aa0;
     transform: translateY(-1px);
 }
 
 #kansels-list li.selected {
-    background: rgba(52, 152, 219, 0.2);
-    border-color: #3498db;
-    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+    background: rgba(68, 122, 160, 0.15); /* Muted blue selected */
+    border-color: #447aa0;
+    box-shadow: 0 2px 6px rgba(68, 122, 160, 0.25);
 }
 
 .kansel-info {
@@ -751,52 +759,50 @@ body {
     padding: 6px 12px;
     border: none;
     border-radius: 6px;
-    background: #3498db;
-    color: white;
+    background: linear-gradient(135deg, #447aa0, #35607f); /* Muted blue */
+    color: #fff;
     font-size: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 2px 4px rgba(40,60,80,0.25);
 }
 
 .center-kansel:hover {
-    background: #2980b9;
+    background: linear-gradient(135deg, #3d6c8d, #2d4f68);
+    box-shadow: 0 3px 6px rgba(40,60,80,0.35);
 }
 
+/* Muted kansel checkbox */
 .kansel-checkbox {
     width: 20px;
     height: 20px;
-    border: 2px solid #3498db;
+    border: 2px solid #447aa0; /* Muted blue border */
     border-radius: 4px;
-    background: white;
+    background: #ffffff;
     cursor: pointer;
     position: relative;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15) inset;
 }
 
 .kansel-checkbox.checked {
-    background: #3498db;
-    border-color: #2980b9;
+    background: linear-gradient(135deg, #447aa0, #35607f);
+    border-color: #35607f;
+    box-shadow: 0 2px 4px rgba(40,60,80,0.25) inset;
 }
-
 .kansel-checkbox.checked::after {
     content: "✓";
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: white;
+    color: #fff;
     font-size: 14px;
     font-weight: bold;
 }
 
-/* Modal actions styling */
-.modal-actions {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    margin-top: 16px;
-}
-
+/* Modal action buttons (legacy left/right) */
 .modal-action-left {
     background: #95a5a6;
     color: white;
@@ -813,7 +819,7 @@ body {
 }
 
 .modal-action-right {
-    background: #27ae60;
+    background: linear-gradient(135deg, #4f7f55, #3e6644); /* Muted success */
     color: white;
     padding: 12px 24px;
     border: none;
@@ -824,7 +830,7 @@ body {
 }
 
 .modal-action-right:hover {
-    background: #229954;
+    background: linear-gradient(135deg, #466f4b, #35543a);
 }
 
 /* Modal action buttons container */
@@ -913,9 +919,9 @@ body {
 #add-shot-form select:focus,
 #add-shot-form textarea:focus {
     outline: none;
-    border-color: #3498db;
+    border-color: #447aa0; /* Muted blue focus */
     background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    box-shadow: 0 0 0 3px rgba(68, 122, 160, 0.1);
 }
 
 /* Tekst-area (notities) niet meer uitrekbaar */
@@ -926,35 +932,37 @@ body {
 
 /* --- Actieknoppen --- */
 /* opslaan – altijd groen */
+/* Muted success (less bright green) */
 #saveSighting,
 #saveShot {
-    background: linear-gradient(135deg, #43a047, #2e7d31);
+    background: linear-gradient(135deg, #4f7f55, #3e6644);
     color: #fff;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(8px);
-    box-shadow: 0 4px 12px rgba(67, 160, 71, 0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 6px rgba(40,70,40,0.35);
 }
 #saveSighting:hover,
 #saveShot:hover {
-    background: linear-gradient(135deg, #2e7d31, #1b5e20);
+    background: linear-gradient(135deg, #466f4b, #35543a);
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(67, 160, 71, 0.4);
+    box-shadow: 0 4px 10px rgba(40,70,40,0.45);
 }
 
 /* annuleer – altijd rood */
+/* Muted danger (less bright red) */
 #cancelSighting,
 #cancelShot {
-    background: linear-gradient(135deg, #d32f2f, #b71c1c);
+    background: linear-gradient(135deg, #b75a52, #9a3f36);
     color: #fff;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(8px);
-    box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 6px rgba(90,40,35,0.35);
 }
 #cancelSighting:hover,
 #cancelShot:hover {
-    background: linear-gradient(135deg, #b71c1c, #8e0000);
+    background: linear-gradient(135deg, #a24f47, #87372f);
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(211, 47, 47, 0.4);
+    box-shadow: 0 4px 10px rgba(90,40,35,0.45);
 }
 
 /* secundaire knoppen (terug / doorgaan) neutraal grijs */
