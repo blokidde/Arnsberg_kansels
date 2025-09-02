@@ -858,6 +858,173 @@ body {
 #hut-add-cancel, #hut-edit-cancel { background:#95a5a6; color:#fff; }
 #hut-add-cancel:hover, #hut-edit-cancel:hover { background:#7f8c8d; }
 
+/* Report choice buttons styling - modern gradient buttons */
+.report-choice-btn {
+    width: 100%;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.report-choice-btn[data-choice="niet-gezien"] {
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+    color: #fff;
+}
+
+.report-choice-btn[data-choice="niet-gezien"]:hover {
+    background: linear-gradient(135deg, #7f8c8d, #6c7b7d);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.report-choice-btn[data-choice="wel-gezien"] {
+    background: linear-gradient(135deg, #4f7f55, #3e6644);
+    color: #fff;
+}
+
+.report-choice-btn[data-choice="wel-gezien"]:hover {
+    background: linear-gradient(135deg, #466f4b, #35543a);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(79, 127, 85, 0.3);
+}
+
+/* =================================
+   LEAFLET POPUP STYLING
+   ================================= */
+
+/* Enhanced Leaflet popup styling */
+.leaflet-popup-content-wrapper {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.leaflet-popup-content {
+    margin: 16px 20px;
+    line-height: 1.5;
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+.leaflet-popup-content strong {
+    color: #2c3e50;
+    font-size: 16px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.leaflet-popup-content #shot-list {
+    margin: 12px 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.leaflet-popup-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0;
+}
+
+.leaflet-popup-content li {
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    border: 1px solid rgba(68, 122, 160, 0.2);
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Popup buttons styling */
+.leaflet-popup-content .add-shot-btn {
+    background: linear-gradient(135deg, #4f7f55, #3e6644);
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 12px;
+    width: 100%;
+    box-shadow: 0 3px 8px rgba(79, 127, 85, 0.3);
+}
+
+.leaflet-popup-content .add-shot-btn:hover {
+    background: linear-gradient(135deg, #466f4b, #35543a);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 127, 85, 0.4);
+}
+
+.leaflet-popup-content .delete-shot-btn {
+    background: linear-gradient(135deg, #b75a52, #9a3f36);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+    flex-shrink: 0;
+}
+
+.leaflet-popup-content .delete-shot-btn:hover {
+    background: linear-gradient(135deg, #a24f47, #87372f);
+    transform: scale(1.1);
+}
+
+/* Popup tip (arrow) styling */
+.leaflet-popup-tip {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Close button styling */
+.leaflet-popup-close-button {
+    background: rgba(183, 90, 82, 0.1);
+    color: #b75a52;
+    font-size: 18px;
+    font-weight: bold;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 8px;
+}
+
+.leaflet-popup-close-button:hover {
+    background: rgba(183, 90, 82, 0.2);
+    color: #9a3f36;
+    transform: scale(1.1);
+}
+
 /* Utility class for hiding elements */
 .hidden {
     display: none !important;
