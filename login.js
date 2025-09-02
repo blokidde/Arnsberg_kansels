@@ -1,19 +1,15 @@
-// API base URL for authentication endpoints
-const API_URL = "https://ec9e59218665.ngrok-free.app";
-
-// Function to check if the stored token is valid
+// Gebruik global window.CONFIG voor API base URL
+function base64UrlDecode(s){ return atob(s.replace(/-/g,'+').replace(/_/g,'/')); }
 function isTokenValid() {
-    const token = localStorage.getItem("token");
-    if (!token) return false;
-
+    const t = localStorage.getItem("token");
+    if(!t) return false;
     try {
-        // Decode token payload and check expiration time
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.exp * 1000 > Date.now(); // `exp` is in milliseconds
-    } catch {
-        return false;
-    }
+        const payload = JSON.parse(base64UrlDecode(t.split('.')[1]));
+        // exp in seconden -> ms
+        return payload.exp * 1000 > Date.now();
+    } catch { return false; }
 }
+window.isTokenValid = isTokenValid;
 
 // Event listener for DOM content loaded
 document.addEventListener("DOMContentLoaded", () => {
@@ -93,10 +89,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             // Send login request to the server
-            const response = await fetch(`${API_URL}/login`, {
+        const response = await fetch(`${window.CONFIG.API_URL}/login`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
+            "Content-Type": "application/x-www-form-urlencoded",
+            "ngrok-skip-browser-warning":"skip-browser-warning"
                 },
                 body: new URLSearchParams({
                     username,
@@ -133,10 +130,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             // Send registration request to the server
-            const response = await fetch(`${API_URL}/register`, {
+        const response = await fetch(`${window.CONFIG.API_URL}/register`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning":"skip-browser-warning"
                 },
                 body: JSON.stringify({
                     username,

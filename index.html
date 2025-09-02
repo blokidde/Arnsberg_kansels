@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Jachthutten Kaart</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
@@ -36,10 +36,7 @@
             <button id="to-login" class="switch-link">Al een account?</button>
         </div>
 
-        <div id="logout-section" class="hidden">
-            <p>Ingelogd als <span id="current-user"></span></p>
-            <button id="logout-button">Uitloggen</button>
-        </div>
+    <!-- Verwijderd: #logout-section (overbodig) -->
     </div>
     <div id="map"></div>
     <div id="floating-menu">
@@ -184,10 +181,13 @@
             </form>
         </div>
     </div>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-velocity@1.6.0/dist/leaflet-velocity.min.js"></script>
-    <script src="map.js"></script>
-    <script src="login.js"></script>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/leaflet-velocity@1.6.0/dist/leaflet-velocity.min.js"></script>
+        <script>
+            window.CONFIG = { API_URL: "https://ec9e59218665.ngrok-free.app" };
+        </script>
+        <script src="map.js"></script>
+        <script src="login.js"></script>
 </body>
 
 </html>

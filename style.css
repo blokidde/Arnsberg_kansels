@@ -38,7 +38,7 @@ body {
 
 /* Enable touch controls for mobile */
 .leaflet-container {
-    touch-action: none;
+    touch-action: pan-x pan-y pinch-zoom;
 }
 
 /* =================================
