@@ -4,7 +4,7 @@
 
 // Application configuration object containing API endpoints, map settings, and boundaries
 const CONFIG = {
-    API_URL: "https://ec9e59218665.ngrok-free.app", // Backend API URL
+    API_URL: "https://90d5df4c82e5.ngrok-free.app", // Backend API URL
     START_COORDS: [51.4372855, 7.8781002], // Initial map center coordinates (Arnsberg)
     START_ZOOM: 15, // Initial zoom level
     // Map boundary coordinates to restrict panning
@@ -90,7 +90,6 @@ function initializeMap() {
     setupMapLayers(map);
     setupMapBounds(map);
     setupMapControls(map);
-
     return map;
 }
 
