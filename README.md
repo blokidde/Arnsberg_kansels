@@ -58,3 +58,16 @@ Frontend-API-aanroepen → Ngrok-tunnel → FastAPI → MariaDB
 | `style.css` | UI- en layoutstijl, inclusief modals, knoppen en kaartcomponenten |
 
 ---
+
+## 🔌 Backendverbinding
+
+De frontend communiceert via een beveiligde Ngrok-tunnel met de backend.  
+Ngrok fungeert als tussenlaag tussen de Raspberry Pi en het publieke internet.  
+De Pi draait:
+- een **FastAPI-container** op poort 8000  
+- een **MariaDB-container** op poort 3306  
+- een **Ngrok-tunnel** die het geheel extern bereikbaar maakt via HTTPS  
+
+De frontend gebruikt één centrale configuratie in `config.js` om de juiste API-url en headers te gebruiken.
+
+---
