@@ -46,3 +46,15 @@ Frontend-API-aanroepen → Ngrok-tunnel → FastAPI → MariaDB
 | 📱 **Mobielvriendelijk** | Volledig responsief en geoptimaliseerd voor smartphones |
 
 ---
+
+## 🧩 Belangrijke Bestanden
+
+| Bestand | Omschrijving |
+|----------|---------------|
+| `index.html` | Hoofdpagina met kaart, login en modals |
+| `map.js` | Alle kaartlogica: markers, zones, API-calls en event handlers |
+| `login.js` | Login-, registratie- en sessiebeheer (JWT) |
+| `config.js` | Centrale configuratie met API-URL en Ngrok-headers |
+| `style.css` | UI- en layoutstijl, inclusief modals, knoppen en kaartcomponenten |
+
+---
