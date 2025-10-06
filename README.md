@@ -33,3 +33,16 @@ De applicatie toont een kaart van het Arnsberg-gebied, waarop gebruikers:
 Frontend-API-aanroepen → Ngrok-tunnel → FastAPI → MariaDB
 
 ---
+
+## 🚀 Functies
+
+| Categorie | Functies |
+|------------|-----------|
+| 🔐 **Authenticatie** | Inloggen, registreren met toegangscode, sessiebeheer via JWT |
+| 🗺️ **Kaart** | Marker- en zonebeheer, Leaflet-lagen (satelliet/topo), locatiebepaling |
+| 🎯 **Rapportage** | Registratie van dierwaarnemingen en schoten via modals |
+| 🧭 **Wind & Locatie** | Live windoverlay en kompasrichting via DeviceOrientation |
+| 📈 **Leaderboard** | Ranglijst met aantal geregistreerde schoten per gebruiker |
+| 📱 **Mobielvriendelijk** | Volledig responsief en geoptimaliseerd voor smartphones |
+
+---
