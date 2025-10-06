@@ -16,3 +16,20 @@ De applicatie toont een kaart van het Arnsberg-gebied, waarop gebruikers:
 
 ---
 
+## ⚙️ Architectuur
+
+**Frontend**
+- HTML, CSS en JavaScript  
+- Gebruikt Leaflet.js voor kaartvisualisatie  
+- Gehost via GitHub Pages
+
+**Backend**
+- FastAPI-server met Python  
+- MariaDB-database in Docker-container  
+- JWT-authenticatie voor login en registratie  
+- Externe toegang via Ngrok HTTPS-tunnel (bijv. `https://<id>.ngrok-free.app`)
+
+**Dataflow**
+Frontend-API-aanroepen → Ngrok-tunnel → FastAPI → MariaDB
+
+---
