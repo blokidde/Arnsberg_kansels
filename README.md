@@ -71,3 +71,8 @@ De Pi draait:
 De frontend gebruikt één centrale configuratie in `config.js` om de juiste API-url en headers te gebruiken.
 
 ---
+
+## 🧾 Licentie
+
+Dit project is ontwikkeld voor persoonlijk gebruik binnen het **Arnsberg Jachtgebied**.  
+Gebruik, kopiëren of verspreiden zonder toestemming is niet toegestaan.
