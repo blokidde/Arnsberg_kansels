@@ -5,18 +5,18 @@ De kaart draait op **GitHub Pages**, terwijl de **FastAPI-backend** met **MariaD
 
 ---
 
-## 🗺️ Overzicht
+## Overzicht
 
 De applicatie toont een kaart van het Arnsberg-gebied, waarop gebruikers:
-- 🏠 Jachthutten kunnen toevoegen, bewerken of verwijderen  
-- 🌳 Zones kunnen tekenen (bos, grens, voederplek, wildakker)  
-- 📋 Waarnemingen (“wel/niet gezien”) en schoten kunnen registreren  
-- 📊 Een leaderboard kunnen bekijken met geregistreerde schoten per gebruiker  
-- 📍 Hun huidige locatie en windrichting kunnen zien  
+- Jachthutten kunnen toevoegen, bewerken of verwijderen  
+- Zones kunnen tekenen (bos, grens, voederplek, wildakker)  
+- Waarnemingen (“wel/niet gezien”) en schoten kunnen registreren  
+- Een leaderboard kunnen bekijken met geregistreerde schoten per gebruiker  
+- Hun huidige locatie en windrichting kunnen zien  
 
 ---
 
-## ⚙️ Architectuur
+## Architectuur
 
 **Frontend**
 - HTML, CSS en JavaScript  
@@ -34,20 +34,20 @@ Frontend-API-aanroepen → Ngrok-tunnel → FastAPI → MariaDB
 
 ---
 
-## 🚀 Functies
+## Functies
 
 | Categorie | Functies |
 |------------|-----------|
-| 🔐 **Authenticatie** | Inloggen, registreren met toegangscode, sessiebeheer via JWT |
-| 🗺️ **Kaart** | Marker- en zonebeheer, Leaflet-lagen (satelliet/topo), locatiebepaling |
-| 🎯 **Rapportage** | Registratie van dierwaarnemingen en schoten via modals |
-| 🧭 **Wind & Locatie** | Live windoverlay en kompasrichting via DeviceOrientation |
-| 📈 **Leaderboard** | Ranglijst met aantal geregistreerde schoten per gebruiker |
-| 📱 **Mobielvriendelijk** | Volledig responsief en geoptimaliseerd voor smartphones |
+| **Authenticatie** | Inloggen, registreren met toegangscode, sessiebeheer via JWT |
+| **Kaart** | Marker- en zonebeheer, Leaflet-lagen (satelliet/topo), locatiebepaling |
+| **Rapportage** | Registratie van dierwaarnemingen en schoten via modals |
+| **Wind & Locatie** | Live windoverlay en kompasrichting via DeviceOrientation |
+| **Leaderboard** | Ranglijst met aantal geregistreerde schoten per gebruiker |
+| **Mobielvriendelijk** | Volledig responsief en geoptimaliseerd voor smartphones |
 
 ---
 
-## 🧩 Belangrijke Bestanden
+## Belangrijke Bestanden
 
 | Bestand | Omschrijving |
 |----------|---------------|
@@ -72,7 +72,7 @@ De frontend gebruikt één centrale configuratie in `config.js` om de juiste API
 
 ---
 
-## 🧾 Licentie
+## Licentie
 
 Dit project is ontwikkeld voor persoonlijk gebruik binnen het **Arnsberg Jachtgebied**.  
 Gebruik, kopiëren of verspreiden zonder toestemming is niet toegestaan.
