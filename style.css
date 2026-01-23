@@ -64,6 +64,24 @@ body {
     border-radius: 5px;
 }
 
+/* Wind data display positioning (leaflet-velocity) */
+.leaflet-bottom.leaflet-left .leaflet-control-velocity {
+    margin-bottom: 70px;
+}
+
+/* Wind data text visibility */
+.leaflet-control-velocity,
+.leaflet-control-velocity * {
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.leaflet-control-velocity {
+    background: rgba(0, 0, 0, 0.45) !important;
+    border-radius: 6px;
+    padding: 6px 8px;
+}
+
 /* Location button styling */
 .locate-btn {
     background: rgba(255, 255, 255, 0.95);
@@ -1288,6 +1306,11 @@ body {
         height: 48px !important;
         font-size: 18px !important;
     }
+
+    /* Wind data display above login/logout bar on mobile */
+    .leaflet-bottom.leaflet-left .leaflet-control-velocity {
+        margin-bottom: 88px;
+    }
     
     /* Improve leaflet layer control positioning */
     .leaflet-bottom.leaflet-right {
@@ -1361,6 +1384,11 @@ body {
         right: 8px !important;
         font-size: 9px !important;
         max-width: 120px !important;
+    }
+
+    /* Wind data display above login/logout bar on small screens */
+    .leaflet-bottom.leaflet-left .leaflet-control-velocity {
+        margin-bottom: 82px;
     }
     
     .leaflet-control-layers {

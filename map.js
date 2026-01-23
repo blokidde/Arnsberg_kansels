@@ -987,7 +987,7 @@ function getZoneStyle(type) {
         case 'bos':
             return { color: 'green', fillColor: 'green', fillOpacity: 0.5 };
         case 'grens':
-            return { color: 'yellow', weight: 3, fillOpacity: 0 };
+            return { color: '#ff6a00', weight: 3, fillOpacity: 0 };
         default:
             return { color: 'blue', fillColor: 'blue', fillOpacity: 0.3 };
     }
