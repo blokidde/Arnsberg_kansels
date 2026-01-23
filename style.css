@@ -932,6 +932,16 @@ body {
     overflow-y: auto;
 }
 
+.leaflet-popup-content .hut-occupant {
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: rgba(31, 223, 100, 0.12);
+    border: 1px solid rgba(31, 223, 100, 0.35);
+    border-radius: 8px;
+    font-size: 13px;
+    color: #1f7a4b;
+}
+
 .leaflet-popup-content ul {
     list-style: none;
     padding: 0;
@@ -970,6 +980,27 @@ body {
     background: linear-gradient(135deg, #466f4b, #35543a);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(79, 127, 85, 0.4);
+}
+
+.leaflet-popup-content .add-person-btn {
+    background: linear-gradient(135deg, #447aa0, #2f5d7a);
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 8px;
+    width: 100%;
+    box-shadow: 0 3px 8px rgba(68, 122, 160, 0.3);
+}
+
+.leaflet-popup-content .add-person-btn:hover {
+    background: linear-gradient(135deg, #3b6d90, #274c64);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(68, 122, 160, 0.4);
 }
 
 .leaflet-popup-content .delete-shot-btn {

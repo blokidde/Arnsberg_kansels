@@ -18,6 +18,10 @@ const CONFIG = {
     MAX_ZOOM: 17  // Maximum allowed zoom level
 };
 
+// Marker colors
+const MARKER_DEFAULT_COLOR = "#1fdf64"; // green for free huts
+const MARKER_OCCUPIED_COLOR = "#e53935"; // red for occupied huts
+
 // Header to skip ngrok browser warning
 const NGROK_SKIP_HEADER = { 'ngrok-skip-browser-warning': 'skip-browser-warning' };
 
@@ -497,6 +501,27 @@ const api = {
         return res.json();
     },
 
+    // Set occupant name for a hut
+    async setHutOccupant(hutId, occupantName) {
+        const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER, "Content-Type": "application/json" };
+        const res = await apiFetch(`${CONFIG.API_URL}/hutjes/${hutId}/occupant`, {
+            method: "PUT",
+            headers,
+            body: JSON.stringify({ occupant_name: occupantName })
+        });
+        return res.json();
+    },
+
+    // Clear occupants from all huts
+    async clearAllOccupants() {
+        const headers = { ...getAuthHeaders(), ...NGROK_SKIP_HEADER };
+        const res = await apiFetch(`${CONFIG.API_URL}/hutjes/occupants`, {
+            method: "DELETE",
+            headers
+        });
+        return res.json();
+    },
+
     // Delete hunting hut marker from database
     async deleteMarker(markerId) {
         const headers = { ...getAuthHeaders() };
@@ -559,11 +584,51 @@ const api = {
    MARKER FUNCTIONS
    ================================= */
 
+// Determine marker color based on occupancy
+function getMarkerFillColor(markerData) {
+    return markerData && markerData.occupant_name
+        ? MARKER_OCCUPIED_COLOR
+        : MARKER_DEFAULT_COLOR;
+}
+
+// Update marker styling after data changes
+function updateMarkerAppearance(marker, markerData) {
+    if (!marker || !marker.setStyle) return;
+    marker.setStyle({ fillColor: getMarkerFillColor(markerData) });
+}
+
+// Find an existing map marker by hut id
+function findMapMarkerById(hutId) {
+    if (!mapGlobal) return null;
+    let found = null;
+    mapGlobal.eachLayer(layer => {
+        if (layer && layer.markerData && layer.markerData.id === Number(hutId)) {
+            found = layer;
+        }
+    });
+    return found;
+}
+
+// Update marker data in state and on-map marker (if available)
+function updateMarkerDataInState(hutId, updates) {
+    const index = state.markers.findIndex(m => m.id === Number(hutId));
+    if (index === -1) return null;
+    state.markers[index] = { ...state.markers[index], ...updates };
+
+    const mapMarker = findMapMarkerById(hutId);
+    if (mapMarker) {
+        mapMarker.markerData = state.markers[index];
+        updateMarkerAppearance(mapMarker, mapMarker.markerData);
+    }
+
+    return state.markers[index];
+}
+
 // Create a visual marker element on the map
 function createMarkerElement(markerData, map) {
     const marker = L.circleMarker([markerData.lat, markerData.lng], {
         radius: 6,
-        fillColor: "blue",
+        fillColor: getMarkerFillColor(markerData),
         color: "white",
         weight: 1,
         opacity: 1,
@@ -664,9 +729,20 @@ async function deleteMarker(marker, markerData, map) {
 async function showMarkerPopup(event, markerData, map) {
     // Add shot button only if user is logged in
     const addShotBtn = isLoggedIn()
-        ? `<br><button class="add-shot-btn" data-hut-id="${markerData.id}">
+        ? `<button class="add-shot-btn" data-hut-id="${markerData.id}">
                Voeg rapportage toe
            </button>`
+        : '';
+
+    // Add person button only if user is logged in
+    const addPersonBtn = isLoggedIn()
+        ? `<button class="add-person-btn" data-hut-id="${markerData.id}">
+               Voeg persoon toe
+           </button>`
+        : '';
+
+    const occupantLine = markerData.occupant_name
+        ? `<div class="hut-occupant">Bezet door: <strong>${markerData.occupant_name}</strong></div>`
         : '';
 
     // Create and show popup
@@ -675,8 +751,10 @@ async function showMarkerPopup(event, markerData, map) {
         .setContent(`
             <strong>${markerData.name} ${markerData.number}</strong><br>
             ${markerData.desc}
+            ${occupantLine}
             <div id="shot-list">laden …</div>
             ${addShotBtn}
+            ${addPersonBtn}
         `)
         .openOn(map);
 
@@ -731,6 +809,61 @@ async function showMarkerPopup(event, markerData, map) {
         const container = popup.getElement();
         container.querySelector('#shot-list').innerHTML =
             '<em style="color:red">Kon lijst niet laden</em>';
+        console.error(err);
+    }
+}
+
+// Add person/occupant to a hut
+async function addPersonToHut(hutId) {
+    if (!isLoggedIn()) {
+        showLoginError();
+        return;
+    }
+
+    const occupantName = prompt('Naam van persoon?');
+    if (!occupantName) return;
+
+    try {
+        await api.setHutOccupant(hutId, occupantName);
+
+        const updatedMarkerData = updateMarkerDataInState(hutId, { occupant_name: occupantName });
+        const mapMarker = findMapMarkerById(hutId);
+
+        if (mapMarker) {
+            updateMarkerAppearance(mapMarker, mapMarker.markerData);
+            const latlng = mapMarker.getLatLng();
+            showMarkerPopup({ latlng }, updatedMarkerData || mapMarker.markerData, mapGlobal);
+        }
+    } catch (err) {
+        alert('Fout bij opslaan van persoon');
+        console.error(err);
+    }
+}
+
+// Clear all occupants from all huts
+async function clearAllOccupants() {
+    if (!isLoggedIn()) {
+        showLoginError();
+        return;
+    }
+
+    if (!confirm('Alle personen van kansels verwijderen?')) return;
+
+    try {
+        await api.clearAllOccupants();
+
+        // Update state and map markers
+        state.markers = state.markers.map(m => ({ ...m, occupant_name: null }));
+        if (mapGlobal) {
+            mapGlobal.eachLayer(layer => {
+                if (layer && layer.markerData) {
+                    layer.markerData = { ...layer.markerData, occupant_name: null };
+                    updateMarkerAppearance(layer, layer.markerData);
+                }
+            });
+        }
+    } catch (err) {
+        alert('Fout bij clearen van personen');
         console.error(err);
     }
 }
@@ -854,7 +987,7 @@ function getZoneStyle(type) {
         case 'bos':
             return { color: 'green', fillColor: 'green', fillOpacity: 0.5 };
         case 'grens':
-            return { color: 'red', weight: 3, fillOpacity: 0 };
+            return { color: 'yellow', weight: 3, fillOpacity: 0 };
         default:
             return { color: 'blue', fillColor: 'blue', fillOpacity: 0.3 };
     }
@@ -1107,11 +1240,18 @@ function setupEventHandlers(map) {
     map.on('popupopen', (e) => {
         const container = e.popup.getElement();
         const btn = container.querySelector('.add-shot-btn');
-        if (!btn) return;
+        if (btn) {
+            btn.addEventListener('click', () => {
+                openReportChoiceModal(btn.dataset.hutId);
+            }, { once: true });
+        }
 
-        btn.addEventListener('click', () => {
-            openReportChoiceModal(btn.dataset.hutId);
-        }, { once: true });
+        const personBtn = container.querySelector('.add-person-btn');
+        if (personBtn) {
+            personBtn.addEventListener('click', () => {
+                addPersonToHut(personBtn.dataset.hutId);
+            }, { once: true });
+        }
 
     });
 
@@ -1182,6 +1322,12 @@ function setupEventHandlers(map) {
     document.getElementById("dropdown-kansels").addEventListener("click", () => {
         document.getElementById("menu-dropdown").classList.add("hidden");
         openKanselsModal();
+    });
+
+    // Handle dropdown Clear occupants option
+    document.getElementById("dropdown-clear-occupants").addEventListener("click", () => {
+        document.getElementById("menu-dropdown").classList.add("hidden");
+        clearAllOccupants();
     });
 
     // Close dropdown when clicking outside
@@ -1673,12 +1819,21 @@ function stopLocationTracking(map) {
 function updateUIForLoginStatus() {
     const isUserLoggedIn = isLoggedIn();
     const leaderboardButton = document.getElementById('dropdown-leaderboard');
+    const clearOccupantsButton = document.getElementById('dropdown-clear-occupants');
     
     if (leaderboardButton) {
         if (isUserLoggedIn) {
             leaderboardButton.style.display = 'flex'; // Show leaderboard button
         } else {
             leaderboardButton.style.display = 'none'; // Hide leaderboard button
+        }
+    }
+
+    if (clearOccupantsButton) {
+        if (isUserLoggedIn) {
+            clearOccupantsButton.style.display = 'flex';
+        } else {
+            clearOccupantsButton.style.display = 'none';
         }
     }
 }
