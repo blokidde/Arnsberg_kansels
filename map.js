@@ -166,9 +166,15 @@ function setupMapControls(map) {
     // Create custom location control with three buttons
     const locationControl = L.control({ position: 'topleft' });
     locationControl.onAdd = function () {
-        const container = L.DomUtil.create('div', 'location-control location-idle');
+        const container = L.DomUtil.create('div', 'location-control location-idle collapsed');
 
         const header = L.DomUtil.create('div', 'location-control-header', container);
+        const toggleBtn = L.DomUtil.create('button', 'location-toggle', header);
+        toggleBtn.type = 'button';
+        toggleBtn.innerHTML = '<span aria-hidden="true">⌖</span>';
+        toggleBtn.title = 'Locatiepaneel tonen';
+        toggleBtn.setAttribute('aria-label', 'Locatiepaneel tonen');
+        toggleBtn.setAttribute('aria-expanded', 'false');
         const title = L.DomUtil.create('span', 'location-title', header);
         title.textContent = 'Locatie';
         const status = L.DomUtil.create('span', 'location-status', header);
@@ -176,6 +182,14 @@ function setupMapControls(map) {
 
         const actions = L.DomUtil.create('div', 'location-actions', container);
         L.DomEvent.disableClickPropagation(container);
+
+        L.DomEvent.on(toggleBtn, 'click', function (e) {
+            L.DomEvent.stopPropagation(e);
+            const isCollapsed = container.classList.toggle('collapsed');
+            toggleBtn.setAttribute('aria-expanded', String(!isCollapsed));
+            toggleBtn.title = isCollapsed ? 'Locatiepaneel tonen' : 'Locatiepaneel verbergen';
+            toggleBtn.setAttribute('aria-label', toggleBtn.title);
+        });
         
         // Start tracking button
         const locateOnceBtn = L.DomUtil.create('button', 'locate-btn locate-once-btn', actions);
@@ -1357,12 +1371,12 @@ function setupEventHandlers(map) {
     document.getElementById("menu-toggle").addEventListener("click", () => {
         const menuToggle = document.getElementById("menu-toggle");
         const dropdown = document.getElementById("menu-dropdown");
-        dropdown.classList.toggle("hidden");
-        menuToggle.setAttribute("aria-expanded", String(!dropdown.classList.contains("hidden")));
+        dropdown.classList.toggle("collapsed");
+        menuToggle.setAttribute("aria-expanded", String(!dropdown.classList.contains("collapsed")));
         
         // Close edit options when opening dropdown
-        if (!dropdown.classList.contains("hidden")) {
-            document.getElementById("edit-options").classList.add("hidden");
+        if (!dropdown.classList.contains("collapsed")) {
+            document.getElementById("edit-options").classList.add("collapsed");
             
             // Exit all edit modes and close any active popups for clean state
             exitAllEditModes();
@@ -1371,19 +1385,19 @@ function setupEventHandlers(map) {
 
     // Handle dropdown Edit option
     document.getElementById("dropdown-edit").addEventListener("click", () => {
-        document.getElementById("menu-dropdown").classList.add("hidden");
+        document.getElementById("menu-dropdown").classList.add("collapsed");
         document.getElementById("menu-toggle").setAttribute("aria-expanded", "false");
         if (!isLoggedIn()) {
             showLoginError();
             exitAllEditModes(); // Reset all edit states when login fails
             return;
         }
-        document.getElementById("edit-options").classList.toggle("hidden");
+        document.getElementById("edit-options").classList.toggle("collapsed");
     });
 
     // Handle dropdown Leaderboard option
     document.getElementById("dropdown-leaderboard").addEventListener("click", () => {
-        document.getElementById("menu-dropdown").classList.add("hidden");
+        document.getElementById("menu-dropdown").classList.add("collapsed");
         document.getElementById("menu-toggle").setAttribute("aria-expanded", "false");
         
         // Check if user is logged in before showing leaderboard
@@ -1419,14 +1433,14 @@ function setupEventHandlers(map) {
 
     // Handle dropdown Kansels option
     document.getElementById("dropdown-kansels").addEventListener("click", () => {
-        document.getElementById("menu-dropdown").classList.add("hidden");
+        document.getElementById("menu-dropdown").classList.add("collapsed");
         document.getElementById("menu-toggle").setAttribute("aria-expanded", "false");
         openKanselsModal();
     });
 
     // Handle dropdown Clear occupants option
     document.getElementById("dropdown-clear-occupants").addEventListener("click", () => {
-        document.getElementById("menu-dropdown").classList.add("hidden");
+        document.getElementById("menu-dropdown").classList.add("collapsed");
         document.getElementById("menu-toggle").setAttribute("aria-expanded", "false");
         clearAllOccupants();
     });
@@ -1435,10 +1449,12 @@ function setupEventHandlers(map) {
     document.addEventListener("click", (e) => {
         const menu = document.getElementById("floating-menu");
         const dropdown = document.getElementById("menu-dropdown");
+        const editOptions = document.getElementById("edit-options");
         
         // Close dropdown if clicking outside the menu area
-        if (!menu.contains(e.target) && !dropdown.classList.contains("hidden")) {
-            dropdown.classList.add("hidden");
+        if (!menu.contains(e.target)) {
+            dropdown.classList.add("collapsed");
+            editOptions.classList.add("collapsed");
             document.getElementById("menu-toggle").setAttribute("aria-expanded", "false");
         }
     });

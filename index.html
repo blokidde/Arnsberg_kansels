@@ -12,14 +12,16 @@
 </head>
 
 <body>
-    <div id="login-bar">
-        <button id="show-login-btn" type="button" aria-controls="login-container" aria-expanded="false">Login</button>
-    </div>
+    <div id="login-bar" class="hidden"></div>
     <div id="logout-bar" class="hidden">
         <span id="logged-in-message"></span>
         <button id="logout-btn">Uitloggen</button>
     </div>
-    <div id="login-container" class="hidden">
+    <div id="login-container" class="collapsed">
+        <button id="show-login-btn" type="button" aria-label="Loginpaneel tonen" aria-controls="login-container" aria-expanded="false">
+            <span class="login-toggle-closed">Login</span>
+            <span class="login-toggle-open" aria-hidden="true">←</span>
+        </button>
         <div id="login-form">
             <h3>Inloggen</h3>
             <input type="text" id="username" placeholder="Gebruikersnaam">
@@ -41,14 +43,14 @@
     </div>
     <div id="map"></div>
     <div id="floating-menu">
-        <button id="menu-toggle" type="button" aria-label="Menu" aria-controls="menu-dropdown" aria-expanded="false">☰</button>
-        <div id="menu-dropdown" class="hidden">
+        <div id="menu-dropdown" class="menu-panel collapsed">
+            <button id="menu-toggle" type="button" aria-label="Menu" aria-controls="menu-dropdown" aria-expanded="false">☰</button>
             <button id="dropdown-edit" type="button"><span class="menu-icon" aria-hidden="true">✎</span><span>Bewerken</span></button>
             <button id="dropdown-kansels" type="button"><span class="menu-icon" aria-hidden="true">⌖</span><span>Kansels</span></button>
             <button id="dropdown-leaderboard" type="button"><span class="menu-icon" aria-hidden="true">★</span><span>Leaderboard</span></button>
             <button id="dropdown-clear-occupants" type="button"><span class="menu-icon" aria-hidden="true">×</span><span>Personen wissen</span></button>
         </div>
-        <div id="edit-options" class="hidden">
+        <div id="edit-options" class="menu-panel collapsed">
             <button id="mode-add" type="button"><span class="menu-icon" aria-hidden="true">+</span><span>Hut toevoegen</span></button>
             <button id="mode-edit" type="button"><span class="menu-icon" aria-hidden="true">✎</span><span>Hut bewerken</span></button>
             <button id="mode-delete" type="button"><span class="menu-icon" aria-hidden="true">−</span><span>Hut verwijderen</span></button>

@@ -1577,6 +1577,9 @@ textarea:focus-visible {
     padding: 0;
     border-radius: var(--radius);
     color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #menu-toggle[aria-expanded="true"] {
@@ -1589,14 +1592,67 @@ textarea:focus-visible {
     width: 230px;
     padding: 8px;
     border-radius: var(--radius);
+    overflow: hidden;
+    transform-origin: top right;
+    transition:
+        opacity 0.18s ease,
+        transform 0.18s ease,
+        width 0.18s ease,
+        max-height 0.18s ease,
+        padding 0.18s ease,
+        margin 0.18s ease;
 }
 
 #menu-dropdown {
-    top: 56px;
+    top: 0;
+    max-height: 320px;
 }
 
 #floating-menu #edit-options {
     margin-top: 8px;
+    max-height: 360px;
+}
+
+#menu-dropdown.collapsed,
+#floating-menu #edit-options.collapsed {
+    width: 56px;
+    height: 56px;
+    max-height: 56px;
+    padding: 8px;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#floating-menu #edit-options.collapsed {
+    margin-top: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+    pointer-events: none;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+#menu-dropdown #menu-toggle {
+    margin-bottom: 6px;
+}
+
+#menu-dropdown.collapsed #menu-toggle {
+    margin-bottom: 0;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    padding: 0;
+}
+
+#menu-dropdown.collapsed > button:not(#menu-toggle) {
+    display: none !important;
 }
 
 #menu-dropdown button,
@@ -1683,11 +1739,63 @@ textarea:focus-visible {
 
 #login-container {
     left: max(16px, env(safe-area-inset-left));
-    bottom: calc(max(16px, env(safe-area-inset-bottom)) + 58px);
+    bottom: max(16px, env(safe-area-inset-bottom));
     width: min(320px, calc(100vw - 32px));
     min-width: 0;
     padding: 18px;
     border-radius: var(--radius);
+    overflow: hidden;
+    transition: width 0.18s ease, padding 0.18s ease, max-height 0.18s ease;
+}
+
+#login-container.collapsed {
+    width: 92px;
+    height: 56px;
+    max-height: 56px;
+    padding: 8px;
+}
+
+#login-container.collapsed #login-form,
+#login-container.collapsed #register-form {
+    display: none !important;
+}
+
+#show-login-btn {
+    width: 100%;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    padding: 0;
+    border-radius: 7px;
+    color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+#login-container:not(.collapsed) #show-login-btn {
+    width: 38px;
+    margin-bottom: 12px;
+    background: #eef5f3 !important;
+    color: var(--primary);
+}
+
+#login-container.collapsed .login-toggle-open,
+#login-container:not(.collapsed) .login-toggle-closed {
+    display: none;
+}
+
+#login-container.collapsed .login-toggle-closed {
+    display: inline;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+#login-container:not(.collapsed) .login-toggle-open {
+    display: inline;
+    font-size: 18px;
+    font-weight: 700;
 }
 
 #login-form,
@@ -1946,6 +2054,8 @@ textarea:focus-visible {
     border-radius: var(--radius);
     color: var(--text);
     background: #ffffff !important;
+    overflow: hidden;
+    transition: width 0.18s ease, padding 0.18s ease;
 }
 
 .location-control-header {
@@ -1954,6 +2064,46 @@ textarea:focus-visible {
     justify-content: space-between;
     gap: 8px;
     min-height: 22px;
+}
+
+#menu-toggle,
+.location-toggle {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: #ffffff;
+    color: var(--text);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.location-toggle {
+    padding: 0;
+}
+
+#menu-toggle {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+}
+
+#menu-dropdown.collapsed #menu-toggle {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+}
+
+.location-toggle:hover,
+#menu-toggle[aria-expanded="false"]:hover {
+    background: #eef5f3 !important;
+    color: var(--primary);
 }
 
 .location-title {
@@ -1978,6 +2128,28 @@ textarea:focus-visible {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 6px;
+}
+
+.location-control.collapsed {
+    width: 56px;
+    height: 56px;
+    padding: 8px;
+    gap: 0;
+}
+
+.location-control.collapsed .location-control-header {
+    min-height: 38px;
+}
+
+.location-control.collapsed .location-title,
+.location-control.collapsed .location-status,
+.location-control.collapsed .location-actions {
+    display: none;
+}
+
+.location-control.collapsed .location-toggle {
+    width: 38px;
+    height: 38px;
 }
 
 .location-control .locate-btn {
@@ -2047,7 +2219,30 @@ textarea:focus-visible {
         gap: 7px;
     }
 
+    .location-control.collapsed {
+        width: 56px;
+        height: 56px;
+        padding: 8px;
+    }
+
     .location-control .locate-btn {
         min-height: 40px;
     }
+}
+
+#floating-menu #menu-dropdown.collapsed {
+    width: 56px !important;
+    min-width: 56px !important;
+    max-width: 56px !important;
+    height: 56px;
+    max-height: 56px;
+    padding: 8px;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+#floating-menu #menu-dropdown.collapsed > button:not(#menu-toggle) {
+    display: none !important;
 }

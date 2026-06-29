@@ -72,15 +72,16 @@ document.addEventListener("DOMContentLoaded", () => {
             // Show logout bar and hide login UI
             const username = localStorage.getItem("username") || "";
             loginBar.classList.add("hidden");
-            loginContainer.classList.add("hidden");
+            loginContainer.classList.add("hidden", "collapsed");
             showLoginBtn.setAttribute("aria-expanded", "false");
             logoutBar.classList.remove("hidden");
             loggedInMsg.textContent = username ? username : "";
         } else {
             // Show login bar and hide logout UI
-            loginBar.classList.remove("hidden");
+            loginBar.classList.add("hidden");
             logoutBar.classList.add("hidden");
-            loginContainer.classList.add("hidden");
+            loginContainer.classList.remove("hidden");
+            loginContainer.classList.add("collapsed");
             showLoginBtn.setAttribute("aria-expanded", "false");
             loggedInMsg.textContent = "";
         }
@@ -91,8 +92,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Toggle visibility of the login container
     showLoginBtn.addEventListener("click", () => {
-        loginContainer.classList.toggle("hidden");
-        showLoginBtn.setAttribute("aria-expanded", String(!loginContainer.classList.contains("hidden")));
+        loginContainer.classList.toggle("collapsed");
+        const isOpen = !loginContainer.classList.contains("collapsed");
+        showLoginBtn.setAttribute("aria-expanded", String(isOpen));
+        showLoginBtn.setAttribute("aria-label", isOpen ? "Loginpaneel verbergen" : "Loginpaneel tonen");
     });
 
     // Switch to registration form
