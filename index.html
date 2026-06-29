@@ -13,13 +13,13 @@
 
 <body>
     <div id="login-bar">
-        <button id="show-login-btn">Login</button>
+        <button id="show-login-btn" type="button" aria-controls="login-container" aria-expanded="false">Login</button>
     </div>
     <div id="logout-bar" class="hidden">
         <span id="logged-in-message"></span>
         <button id="logout-btn">Uitloggen</button>
     </div>
-    <div id="login-container">
+    <div id="login-container" class="hidden">
         <div id="login-form">
             <h3>Inloggen</h3>
             <input type="text" id="username" placeholder="Gebruikersnaam">
@@ -41,26 +41,26 @@
     </div>
     <div id="map"></div>
     <div id="floating-menu">
-        <button id="menu-toggle">☰</button>
+        <button id="menu-toggle" type="button" aria-label="Menu" aria-controls="menu-dropdown" aria-expanded="false">☰</button>
         <div id="menu-dropdown" class="hidden">
-            <button id="dropdown-edit">Edit</button>
-            <button id="dropdown-kansels">Kansels</button>
-            <button id="dropdown-leaderboard">Leaderboard</button>
-            <button id="dropdown-clear-occupants">Clear personen</button>
+            <button id="dropdown-edit" type="button"><span class="menu-icon" aria-hidden="true">✎</span><span>Bewerken</span></button>
+            <button id="dropdown-kansels" type="button"><span class="menu-icon" aria-hidden="true">⌖</span><span>Kansels</span></button>
+            <button id="dropdown-leaderboard" type="button"><span class="menu-icon" aria-hidden="true">★</span><span>Leaderboard</span></button>
+            <button id="dropdown-clear-occupants" type="button"><span class="menu-icon" aria-hidden="true">×</span><span>Personen wissen</span></button>
         </div>
         <div id="edit-options" class="hidden">
-            <button id="mode-add">Voeg hut toe</button>
-            <button id="mode-edit">Bewerk hut</button>
-            <button id="mode-delete">Verwijder hut</button>
-            <button id="add-zone">Voeg zone toe</button>
+            <button id="mode-add" type="button"><span class="menu-icon" aria-hidden="true">+</span><span>Hut toevoegen</span></button>
+            <button id="mode-edit" type="button"><span class="menu-icon" aria-hidden="true">✎</span><span>Hut bewerken</span></button>
+            <button id="mode-delete" type="button"><span class="menu-icon" aria-hidden="true">−</span><span>Hut verwijderen</span></button>
+            <button id="add-zone" type="button"><span class="menu-icon" aria-hidden="true">▱</span><span>Zone toevoegen</span></button>
             <div id="zone-types" class="hidden">
-                <button data-type="bos">Bos</button>
-                <button data-type="wildakker">Wildakker</button>
-                <button data-type="voederplek">Voederplek</button>
-                <button data-type="grens">raster</button>
+                <button data-type="bos" type="button">Bos</button>
+                <button data-type="wildakker" type="button">Wildakker</button>
+                <button data-type="voederplek" type="button">Voederplek</button>
+                <button data-type="grens" type="button">Raster</button>
             </div>
-            <button id="confirm-zone" class="hidden">Bevestig zone</button>
-            <button id="delete-zone" class="hidden">Verwijder zone</button>
+            <button id="confirm-zone" class="hidden" type="button"><span class="menu-icon" aria-hidden="true">✓</span><span>Zone opslaan</span></button>
+            <button id="delete-zone" class="hidden" type="button"><span class="menu-icon" aria-hidden="true">×</span><span>Zone verwijderen</span></button>
         </div>
     </div>
     

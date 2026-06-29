@@ -73,6 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const username = localStorage.getItem("username") || "";
             loginBar.classList.add("hidden");
             loginContainer.classList.add("hidden");
+            showLoginBtn.setAttribute("aria-expanded", "false");
             logoutBar.classList.remove("hidden");
             loggedInMsg.textContent = username ? username : "";
         } else {
@@ -80,6 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
             loginBar.classList.remove("hidden");
             logoutBar.classList.add("hidden");
             loginContainer.classList.add("hidden");
+            showLoginBtn.setAttribute("aria-expanded", "false");
             loggedInMsg.textContent = "";
         }
     }
@@ -90,6 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Toggle visibility of the login container
     showLoginBtn.addEventListener("click", () => {
         loginContainer.classList.toggle("hidden");
+        showLoginBtn.setAttribute("aria-expanded", String(!loginContainer.classList.contains("hidden")));
     });
 
     // Switch to registration form

@@ -4,7 +4,7 @@
 
 // Application configuration object containing API endpoints, map settings, and boundaries
 const CONFIG = {
-    API_URL: "https://30f7b4c0d715.ngrok-free.app", // Backend API URL
+    API_URL: window.CONFIG?.API_URL || "", // Backend API URL
     START_COORDS: [51.4372855, 7.8781002], // Initial map center coordinates (Arnsberg)
     START_ZOOM: 15, // Initial zoom level
     // Map boundary coordinates to restrict panning
@@ -23,7 +23,7 @@ const MARKER_DEFAULT_COLOR = "#1fdf64"; // green for free huts
 const MARKER_OCCUPIED_COLOR = "#e53935"; // red for occupied huts
 
 // Header to skip ngrok browser warning
-const NGROK_SKIP_HEADER = { 'ngrok-skip-browser-warning': 'skip-browser-warning' };
+const NGROK_SKIP_HEADER = window.CONFIG?.NGROK_SKIP_HEADER || { 'ngrok-skip-browser-warning': 'skip-browser-warning' };
 
 /* =================================
    STATE MANAGEMENT
@@ -230,7 +230,13 @@ function setupMapControls(map) {
 
 // Enhanced fetch function with authentication handling
 async function apiFetch(url, options = {}) {
-    const res = await fetch(url, options);
+    const res = await fetch(url, {
+        ...options,
+        headers: {
+            ...NGROK_SKIP_HEADER,
+            ...(options.headers || {})
+        }
+    });
 
     // Handle authentication errors
     if (res.status === 401) {
@@ -1260,8 +1266,10 @@ function setupEventHandlers(map) {
 
     // Toggle hamburger dropdown menu
     document.getElementById("menu-toggle").addEventListener("click", () => {
+        const menuToggle = document.getElementById("menu-toggle");
         const dropdown = document.getElementById("menu-dropdown");
         dropdown.classList.toggle("hidden");
+        menuToggle.setAttribute("aria-expanded", String(!dropdown.classList.contains("hidden")));
         
         // Close edit options when opening dropdown
         if (!dropdown.classList.contains("hidden")) {
@@ -1275,6 +1283,7 @@ function setupEventHandlers(map) {
     // Handle dropdown Edit option
     document.getElementById("dropdown-edit").addEventListener("click", () => {
         document.getElementById("menu-dropdown").classList.add("hidden");
+        document.getElementById("menu-toggle").setAttribute("aria-expanded", "false");
         if (!isLoggedIn()) {
             showLoginError();
             exitAllEditModes(); // Reset all edit states when login fails
@@ -1286,6 +1295,7 @@ function setupEventHandlers(map) {
     // Handle dropdown Leaderboard option
     document.getElementById("dropdown-leaderboard").addEventListener("click", () => {
         document.getElementById("menu-dropdown").classList.add("hidden");
+        document.getElementById("menu-toggle").setAttribute("aria-expanded", "false");
         
         // Check if user is logged in before showing leaderboard
         if (!isLoggedIn()) {
@@ -1321,12 +1331,14 @@ function setupEventHandlers(map) {
     // Handle dropdown Kansels option
     document.getElementById("dropdown-kansels").addEventListener("click", () => {
         document.getElementById("menu-dropdown").classList.add("hidden");
+        document.getElementById("menu-toggle").setAttribute("aria-expanded", "false");
         openKanselsModal();
     });
 
     // Handle dropdown Clear occupants option
     document.getElementById("dropdown-clear-occupants").addEventListener("click", () => {
         document.getElementById("menu-dropdown").classList.add("hidden");
+        document.getElementById("menu-toggle").setAttribute("aria-expanded", "false");
         clearAllOccupants();
     });
 
@@ -1338,6 +1350,7 @@ function setupEventHandlers(map) {
         // Close dropdown if clicking outside the menu area
         if (!menu.contains(e.target) && !dropdown.classList.contains("hidden")) {
             dropdown.classList.add("hidden");
+            document.getElementById("menu-toggle").setAttribute("aria-expanded", "false");
         }
     });
 
@@ -1463,7 +1476,7 @@ function setupEventHandlers(map) {
             try {
                 await fetch(`${CONFIG.API_URL}/sessies`, {
                     method: "POST",
-                    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+                    headers: { ...getAuthHeaders(), ...NGROK_SKIP_HEADER, "Content-Type": "application/json" },
                     body: JSON.stringify(sightingPayload)
                 });
             } catch (err) {
@@ -1475,7 +1488,7 @@ function setupEventHandlers(map) {
             // Submit shot data to server
             const res = await fetch(`${CONFIG.API_URL}/schoten`, {
                 method: 'POST',
-                headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                headers: { ...getAuthHeaders(), ...NGROK_SKIP_HEADER, 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             if (!res.ok) throw new Error(await res.text());
@@ -1543,7 +1556,7 @@ function setupEventHandlers(map) {
                 };
                 fetch(`${CONFIG.API_URL}/sessies`, {
                     method: "POST",
-                    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+                    headers: { ...getAuthHeaders(), ...NGROK_SKIP_HEADER, "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 }).then(() => alert("Rapportage opgeslagen"));
             } else if (choice === "wel-gezien") {
@@ -1576,7 +1589,7 @@ function setupEventHandlers(map) {
         try {
             await fetch(`${CONFIG.API_URL}/sessies`, {
                 method: "POST",
-                headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+                headers: { ...getAuthHeaders(), ...NGROK_SKIP_HEADER, "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
             alert("Waarneming opgeslagen");
