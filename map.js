@@ -15,7 +15,19 @@ const CONFIG = {
         [51.4227863001803, 7.85419464111328]  // bottom left bound
     ],
     MIN_ZOOM: 15, // Minimum allowed zoom level
-    MAX_ZOOM: 17  // Maximum allowed zoom level
+    MAX_ZOOM: 17, // Maximum allowed zoom level
+    MAP_BOUNDS_PADDING: 0.25, // Extra pan room around the managed Arnsberg area
+    VECTOR_RENDER_PADDING: 1.5, // Draw vector layers well beyond the visible viewport while panning
+    TILE_KEEP_BUFFER: 6, // Preload extra map tiles around the viewport
+    WIND_BOUNDS_PADDING: 0.55, // Extend wind data beyond the maximum visible map bounds
+    WIND_MAX_GRID_POINTS: 45000,
+    WIND_CANVAS_BUFFER_PX: 240,
+    WIND_RESTART_DELAY_MS: 40,
+    WIND_FRAME_RATE: 18,
+    WIND_PARTICLE_AGE: 80,
+    WIND_PARTICLE_MULTIPLIER: 1 / 520,
+    WIND_LINE_WIDTH: 1,
+    WIND_VELOCITY_SCALE: 0.008
 };
 
 // Marker colors
@@ -42,7 +54,9 @@ const state = {
     editHandles: [],    // Array of drag handles for zone editing
     zoneId: 1,          // Counter for zone IDs
     hutMode: null,      // Current mode for hut interaction (add, edit, delete)
-    layers: {}          // Store overlay layers like wind
+    layers: {},         // Store overlay layers like wind
+    windHandlersReady: false,
+    windRestartTimer: null
 };
 
 // Global map reference for use across functions
@@ -83,13 +97,15 @@ function getAuthHeaders() {
 function initializeMap() {
     const map = L.map('map', {
         preferCanvas: true,
+        renderer: L.canvas({ padding: CONFIG.VECTOR_RENDER_PADDING }),
         zoomControl: false, // Disable zoom buttons but keep zoom functionality
         doubleClickZoom: true,
         scrollWheelZoom: true,
         boxZoom: true,
         touchZoom: true,
         minZoom: CONFIG.MIN_ZOOM,
-        maxZoom: CONFIG.MAX_ZOOM
+        maxZoom: CONFIG.MAX_ZOOM,
+        maxBoundsViscosity: 1.0
     }).setView(CONFIG.START_COORDS, CONFIG.START_ZOOM);
 
     setupMapLayers(map);
@@ -101,10 +117,13 @@ function initializeMap() {
 // Setup map tile layers and layer control
 function setupMapLayers(map) {
     // Satellite imagery layer
-    const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+    const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        keepBuffer: CONFIG.TILE_KEEP_BUFFER
+    });
     // Topographic map with elevation data
     const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
         maxZoom: 17,
+        keepBuffer: CONFIG.TILE_KEEP_BUFFER,
         attribution: 'Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap'
     });
 
@@ -130,12 +149,16 @@ function setupMapLayers(map) {
 
 // Setup map boundaries to restrict panning
 function setupMapBounds(map) {
-    const bounds = L.latLngBounds(CONFIG.MAP_BOUNDS);
+    const bounds = getConfiguredMapBounds(CONFIG.MAP_BOUNDS_PADDING);
     map.setMaxBounds(bounds);
     // Ensure map stays within bounds when dragging
     map.on('drag', function () {
         map.panInsideBounds(bounds, { animate: false });
     });
+}
+
+function getConfiguredMapBounds(padding = 0) {
+    return L.latLngBounds(CONFIG.MAP_BOUNDS).pad(padding);
 }
 
 // Setup map controls (location button, etc.)
@@ -1758,6 +1781,13 @@ async function loadWindOverlay(map) {
 
         const windData = await response.json();
         console.log('Wind data loaded:', windData);
+        const expandedWindData = expandWindDataToBounds(
+            windData,
+            getConfiguredMapBounds(CONFIG.MAP_BOUNDS_PADDING + CONFIG.WIND_BOUNDS_PADDING)
+        );
+        state.layers.windData = expandedWindData;
+
+        const shouldShowWind = !state.layers.wind || map.hasLayer(state.layers.wind);
 
         // Remove existing wind layer if present
         if (state.layers.wind) {
@@ -1771,10 +1801,14 @@ async function loadWindOverlay(map) {
             displayOptions: {
                 velocityType: 'Wind',
                 displayPosition: 'bottomleft',
-                displayEmptyString: 'Geen wind data'
+                displayEmptyString: 'Wind niet beschikbaar'
             },
-            velocityScale: 0.005,
+            velocityScale: CONFIG.WIND_VELOCITY_SCALE,
             maxVelocity: 15,
+            frameRate: CONFIG.WIND_FRAME_RATE,
+            particleAge: CONFIG.WIND_PARTICLE_AGE,
+            particleMultiplier: CONFIG.WIND_PARTICLE_MULTIPLIER,
+            lineWidth: CONFIG.WIND_LINE_WIDTH,
             // Light grey color scale - uniform light grey tones for subtle wind visualization
             // Wind strength is indicated by line density rather than color intensity
             // Light grey color scale - uniform light grey tones for subtle wind visualization
@@ -1796,18 +1830,221 @@ async function loadWindOverlay(map) {
                 "rgba(85,85,85,0.95)",     // 
                 "rgba(80,80,80,1.0)"       // Medium grey for strongest winds
             ],
-            opacity: 0.25,  // Much lower opacity for subtlety
-            data: windData
+            opacity: 0.32,
+            data: expandedWindData
         });
+        patchVelocityLayerForFastPan(state.layers.wind);
 
         // Add to layer control so you can toggle it
         state.layerControl.addOverlay(state.layers.wind, "Wind");
+        if (shouldShowWind) {
+            state.layers.wind.addTo(map);
+        }
+        setupWindInteractionRefresh(map);
 
         console.log('Wind overlay added to map');
 
     } catch (error) {
         console.error('Failed to load wind data:', error);
     }
+}
+
+function setupWindInteractionRefresh(map) {
+    if (state.windHandlersReady) return;
+    state.windHandlersReady = true;
+
+    map.on('moveend zoomend', () => {
+        refreshWindAnimationSoon(map);
+    });
+
+    map.on('mousemove', () => {
+        formatWindControlSoon();
+    });
+}
+
+function refreshWindAnimationSoon(map) {
+    if (state.windRestartTimer) clearTimeout(state.windRestartTimer);
+    state.windRestartTimer = setTimeout(() => {
+        const windLayer = state.layers.wind;
+        if (!windLayer || !state.layers.windData || !map.hasLayer(windLayer)) return;
+
+        if (typeof windLayer._clearAndRestart === 'function') {
+            windLayer._clearAndRestart();
+            return;
+        }
+
+        if (typeof windLayer.redraw === 'function') {
+            windLayer.redraw();
+        }
+    }, CONFIG.WIND_RESTART_DELAY_MS);
+}
+
+function patchVelocityLayerForFastPan(windLayer) {
+    if (!windLayer || windLayer._fastPanPatchApplied) return;
+    windLayer._fastPanPatchApplied = true;
+
+    windLayer._startWindy = function () {
+        if (!this._map || !this._windy || !this._canvasLayer || !this._canvasLayer._canvas) return;
+
+        const size = this._map.getSize();
+        const buffer = CONFIG.WIND_CANVAS_BUFFER_PX;
+        const canvasWidth = size.x + buffer * 2;
+        const canvasHeight = size.y + buffer * 2;
+        const canvas = this._canvasLayer._canvas;
+
+        if (canvas.width !== canvasWidth) canvas.width = canvasWidth;
+        if (canvas.height !== canvasHeight) canvas.height = canvasHeight;
+        canvas.style.width = `${canvasWidth}px`;
+        canvas.style.height = `${canvasHeight}px`;
+
+        const offset = this._map.containerPointToLayerPoint([-buffer, -buffer]);
+        L.DomUtil.setPosition(canvas, offset);
+
+        if (this._windy.params) {
+            this._windy.params.map = createBufferedWindMapAdapter(this._map, buffer);
+        }
+
+        const southWest = this._map.containerPointToLatLng([-buffer, size.y + buffer]);
+        const northEast = this._map.containerPointToLatLng([size.x + buffer, -buffer]);
+        this._windy.start(
+            [[0, 0], [canvasWidth, canvasHeight]],
+            canvasWidth,
+            canvasHeight,
+            [[southWest.lng, southWest.lat], [northEast.lng, northEast.lat]]
+        );
+    };
+
+    windLayer.onDrawLayer = function () {
+        if (!this._windy) {
+            this._initWindy(this);
+            return;
+        }
+
+        if (!this.options.data) return;
+        if (this._timer) clearTimeout(this._timer);
+
+        this._timer = setTimeout(() => {
+            this._startWindy();
+        }, CONFIG.WIND_RESTART_DELAY_MS);
+    };
+}
+
+function createBufferedWindMapAdapter(map, buffer) {
+    return {
+        containerPointToLatLng(point) {
+            const p = L.point(point);
+            return map.containerPointToLatLng([p.x - buffer, p.y - buffer]);
+        },
+        latLngToContainerPoint(latlng) {
+            const p = map.latLngToContainerPoint(latlng);
+            return L.point(p.x + buffer, p.y + buffer);
+        }
+    };
+}
+
+function formatWindControlSoon() {
+    requestAnimationFrame(formatWindControl);
+}
+
+function formatWindControl() {
+    const control = document.querySelector('.leaflet-control-velocity');
+    if (!control || control.dataset.formatted === control.innerHTML) return;
+
+    const text = control.textContent || '';
+    const directionMatch = text.match(/Direction:\s*([0-9.]+)°/i);
+    const speedMatch = text.match(/Speed:\s*([0-9.]+)\s*m\/s/i);
+
+    if (!directionMatch || !speedMatch) {
+        control.textContent = text.includes('Unavailable') ? 'Wind niet beschikbaar' : text;
+        control.dataset.formatted = control.innerHTML;
+        return;
+    }
+
+    const direction = Math.round(Number(directionMatch[1]));
+    const speed = Number(speedMatch[1]).toFixed(1).replace('.', ',');
+    control.innerHTML = `<span class="wind-label">Wind</span><span>${direction}°</span><span>${speed} m/s</span>`;
+    control.dataset.formatted = control.innerHTML;
+}
+
+function expandWindDataToBounds(windData, targetBounds) {
+    if (!Array.isArray(windData) || !targetBounds) return windData;
+    return windData.map(record => expandWindRecordToBounds(record, targetBounds));
+}
+
+function expandWindRecordToBounds(record, targetBounds) {
+    const header = record && record.header;
+    const data = record && record.data;
+    if (!header || !Array.isArray(data) || !header.nx || !header.ny || !header.dx || !header.dy) {
+        return record;
+    }
+
+    const srcNx = Number(header.nx);
+    const srcNy = Number(header.ny);
+    const srcDx = Math.abs(Number(header.dx));
+    const srcDy = Math.abs(Number(header.dy));
+    if (!Number.isFinite(srcNx) || !Number.isFinite(srcNy) || !srcDx || !srcDy || data.length < srcNx * srcNy) {
+        return record;
+    }
+
+    const srcWest = Number(header.lo1);
+    const srcNorth = Number(header.la1);
+    const srcEast = Number.isFinite(Number(header.lo2)) ? Number(header.lo2) : srcWest + srcDx * (srcNx - 1);
+    const srcSouth = Number.isFinite(Number(header.la2)) ? Number(header.la2) : srcNorth - srcDy * (srcNy - 1);
+    if (![srcWest, srcNorth, srcEast, srcSouth].every(Number.isFinite)) return record;
+
+    const targetWest = Math.min(targetBounds.getWest(), srcWest);
+    const targetEast = Math.max(targetBounds.getEast(), srcEast);
+    const targetSouth = Math.min(targetBounds.getSouth(), srcSouth);
+    const targetNorth = Math.max(targetBounds.getNorth(), srcNorth);
+
+    const alreadyCoversTarget =
+        srcWest <= targetWest &&
+        srcEast >= targetEast &&
+        srcSouth <= targetSouth &&
+        srcNorth >= targetNorth;
+    if (alreadyCoversTarget) return record;
+
+    const rawNx = Math.ceil((targetEast - targetWest) / srcDx) + 1;
+    const rawNy = Math.ceil((targetNorth - targetSouth) / srcDy) + 1;
+    const pointCount = rawNx * rawNy;
+    const spacingScale = pointCount > CONFIG.WIND_MAX_GRID_POINTS
+        ? Math.sqrt(pointCount / CONFIG.WIND_MAX_GRID_POINTS)
+        : 1;
+    const targetDx = srcDx * spacingScale;
+    const targetDy = srcDy * spacingScale;
+    const targetNx = Math.ceil((targetEast - targetWest) / targetDx) + 1;
+    const targetNy = Math.ceil((targetNorth - targetSouth) / targetDy) + 1;
+
+    const expandedData = new Array(targetNx * targetNy);
+    for (let y = 0; y < targetNy; y++) {
+        const lat = targetNorth - y * targetDy;
+        const srcY = clamp(Math.round((srcNorth - lat) / srcDy), 0, srcNy - 1);
+        for (let x = 0; x < targetNx; x++) {
+            const lon = targetWest + x * targetDx;
+            const srcX = clamp(Math.round((lon - srcWest) / srcDx), 0, srcNx - 1);
+            expandedData[y * targetNx + x] = data[srcY * srcNx + srcX];
+        }
+    }
+
+    return {
+        ...record,
+        header: {
+            ...header,
+            lo1: targetWest,
+            la1: targetNorth,
+            lo2: targetWest + targetDx * (targetNx - 1),
+            la2: targetNorth - targetDy * (targetNy - 1),
+            dx: targetDx,
+            dy: targetDy,
+            nx: targetNx,
+            ny: targetNy
+        },
+        data: expandedData
+    };
+}
+
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
 }
 
 // Start tracking device compass/orientation
