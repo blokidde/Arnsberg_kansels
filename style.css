@@ -1906,3 +1906,125 @@ textarea:focus-visible {
         padding: 18px;
     }
 }
+
+/* =================================
+   LOCATION CONTROL POLISH
+   ================================= */
+
+.leaflet-top.leaflet-left {
+    top: max(14px, env(safe-area-inset-top));
+    left: max(14px, env(safe-area-inset-left));
+}
+
+.location-control {
+    width: 174px;
+    gap: 8px;
+    padding: 10px;
+    border-radius: var(--radius);
+    color: var(--text);
+    background: #ffffff !important;
+}
+
+.location-control-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 22px;
+}
+
+.location-title {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.location-status {
+    min-width: 54px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #eef2f2;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+}
+
+.location-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+
+.location-control .locate-btn {
+    width: 100%;
+    min-width: 0;
+    min-height: 38px;
+    padding: 0;
+    border-radius: 7px;
+    background: #ffffff !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: none !important;
+    color: var(--text);
+    font-size: 18px;
+    line-height: 1;
+}
+
+.location-control .locate-btn:hover {
+    background: #eef5f3 !important;
+    color: var(--primary);
+    transform: none;
+}
+
+.location-control .locate-btn.active,
+.location-control.location-active .locate-once-btn {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: #fff;
+}
+
+.location-control.location-searching .location-status {
+    background: #e8f0f6;
+    color: var(--accent);
+}
+
+.location-control.location-active .location-status {
+    background: #e6f1ef;
+    color: var(--primary);
+}
+
+.location-control.location-error .location-status {
+    background: #f5e9e8;
+    color: var(--danger);
+}
+
+.location-control .locate-stop-btn {
+    color: var(--danger);
+}
+
+.location-control .locate-center-btn.hidden,
+.location-control .locate-stop-btn.hidden {
+    display: flex !important;
+    opacity: 1;
+    pointer-events: none;
+    background: #f1f3f2 !important;
+    color: #8a9694;
+}
+
+@media screen and (max-width: 480px) {
+    .leaflet-top.leaflet-left {
+        top: max(10px, env(safe-area-inset-top));
+        left: max(10px, env(safe-area-inset-left));
+    }
+
+    .location-control {
+        width: 158px;
+        padding: 8px;
+        gap: 7px;
+    }
+
+    .location-control .locate-btn {
+        min-height: 40px;
+    }
+}

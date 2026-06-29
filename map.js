@@ -53,6 +53,7 @@ let locationMarker = null;   // behoud één marker
 let locationWatchId = null;  // id van map.locate({ watch:true })
 let locationDirectionMarker = null;  // richtingsindicator marker
 let currentHeading = null;   // huidige kompasrichting
+let shouldCenterOnNextLocation = false; // one-time centering after starting location tracking
 
 /* =================================
    AUTHENTICATION HELPERS
@@ -142,22 +143,39 @@ function setupMapControls(map) {
     // Create custom location control with three buttons
     const locationControl = L.control({ position: 'topleft' });
     locationControl.onAdd = function () {
-        const container = L.DomUtil.create('div', 'location-control');
+        const container = L.DomUtil.create('div', 'location-control location-idle');
+
+        const header = L.DomUtil.create('div', 'location-control-header', container);
+        const title = L.DomUtil.create('span', 'location-title', header);
+        title.textContent = 'Locatie';
+        const status = L.DomUtil.create('span', 'location-status', header);
+        status.textContent = 'Uit';
+
+        const actions = L.DomUtil.create('div', 'location-actions', container);
+        L.DomEvent.disableClickPropagation(container);
         
-        // 📍 locate-once button
-        const locateOnceBtn = L.DomUtil.create('button', 'locate-btn locate-once-btn', container);
-        locateOnceBtn.innerHTML = '📍';
+        // Start tracking button
+        const locateOnceBtn = L.DomUtil.create('button', 'locate-btn locate-once-btn', actions);
+        locateOnceBtn.type = 'button';
+        locateOnceBtn.innerHTML = '<span aria-hidden="true">⌖</span>';
         locateOnceBtn.title = 'Start locatie tracking';
+        locateOnceBtn.setAttribute('aria-label', 'Start locatie tracking');
         
-        // 🎯 locate-center button (initially hidden)
-        const locateCenterBtn = L.DomUtil.create('button', 'locate-btn locate-center-btn hidden', container);
-        locateCenterBtn.innerHTML = '🎯';
+        // Center button (initially hidden)
+        const locateCenterBtn = L.DomUtil.create('button', 'locate-btn locate-center-btn hidden', actions);
+        locateCenterBtn.type = 'button';
+        locateCenterBtn.innerHTML = '<span aria-hidden="true">◎</span>';
         locateCenterBtn.title = 'Centreer op huidige locatie';
+        locateCenterBtn.setAttribute('aria-label', 'Centreer op huidige locatie');
+        locateCenterBtn.disabled = true;
         
-        // ⏹️ stop button (initially hidden)
-        const stopBtn = L.DomUtil.create('button', 'locate-btn locate-stop-btn hidden', container);
-        stopBtn.innerHTML = '⏹️';
+        // Stop button (initially hidden)
+        const stopBtn = L.DomUtil.create('button', 'locate-btn locate-stop-btn hidden', actions);
+        stopBtn.type = 'button';
+        stopBtn.innerHTML = '<span aria-hidden="true">■</span>';
         stopBtn.title = 'Stop locatie tracking';
+        stopBtn.setAttribute('aria-label', 'Stop locatie tracking');
+        stopBtn.disabled = true;
         
         // Handle locate-once button click
         L.DomEvent.on(locateOnceBtn, 'click', function (e) {
@@ -165,6 +183,7 @@ function setupMapControls(map) {
             
             // Start location watching if not already active
             if (locationWatchId === null) {
+                shouldCenterOnNextLocation = true;
                 locationWatchId = map.locate({ 
                     watch: true,
                     enableHighAccuracy: true,
@@ -172,6 +191,7 @@ function setupMapControls(map) {
                     timeout: 15000
                 });
                 locateOnceBtn.classList.add('active');
+                setLocationControlStatus('searching');
                 
                 // Start listening for device orientation
                 startCompassTracking();
@@ -182,7 +202,7 @@ function setupMapControls(map) {
         L.DomEvent.on(locateCenterBtn, 'click', function (e) {
             L.DomEvent.stopPropagation(e);
             
-            // Center on existing arrow marker without restarting watch
+            // Center once on existing arrow marker without enabling continuous follow mode.
             if (locationDirectionMarker) {
                 map.setView(locationDirectionMarker.getLatLng(), CONFIG.START_ZOOM);
             }
@@ -198,22 +218,37 @@ function setupMapControls(map) {
     };
     locationControl.addTo(map);
 
+    map.on('dragstart zoomstart', function () {
+        shouldCenterOnNextLocation = false;
+    });
+
     // Handle successful location finding
     map.on('locationfound', function (e) {
-        if (locationMarker === null) {
+        if (locationDirectionMarker === null) {
             // First location fix: create location marker with direction arrow
             createLocationMarker(e.latlng, map);
             
-            map.setView(e.latlng, CONFIG.START_ZOOM);
+            if (shouldCenterOnNextLocation) {
+                map.setView(e.latlng, CONFIG.START_ZOOM);
+                shouldCenterOnNextLocation = false;
+            }
             
             // Show the center and stop buttons
             const centerBtn = document.querySelector('.locate-center-btn');
             const stopBtn = document.querySelector('.locate-stop-btn');
-            if (centerBtn) centerBtn.classList.remove('hidden');
-            if (stopBtn) stopBtn.classList.remove('hidden');
+            if (centerBtn) {
+                centerBtn.classList.remove('hidden');
+                centerBtn.disabled = false;
+            }
+            if (stopBtn) {
+                stopBtn.classList.remove('hidden');
+                stopBtn.disabled = false;
+            }
+            setLocationControlStatus('active');
         } else {
             // Subsequent updates: just move the marker smoothly
             updateLocationMarker(e.latlng);
+            setLocationControlStatus('active');
         }
     });
     
@@ -221,7 +256,38 @@ function setupMapControls(map) {
     map.on('locationerror', function (e) {
         alert('Locatie kon niet worden bepaald: ' + e.message);
         locationWatchId = null;
+        shouldCenterOnNextLocation = false;
+        const locateBtn = document.querySelector('.locate-once-btn');
+        const centerBtn = document.querySelector('.locate-center-btn');
+        const stopBtn = document.querySelector('.locate-stop-btn');
+        if (locateBtn) locateBtn.classList.remove('active');
+        if (centerBtn) {
+            centerBtn.classList.add('hidden');
+            centerBtn.disabled = true;
+        }
+        if (stopBtn) {
+            stopBtn.classList.add('hidden');
+            stopBtn.disabled = true;
+        }
+        setLocationControlStatus('error');
     });
+}
+
+function setLocationControlStatus(status) {
+    const control = document.querySelector('.location-control');
+    const label = document.querySelector('.location-status');
+    if (!control || !label) return;
+
+    control.classList.remove('location-idle', 'location-searching', 'location-active', 'location-error');
+    control.classList.add(`location-${status}`);
+
+    const labels = {
+        idle: 'Uit',
+        searching: 'Zoeken',
+        active: 'Actief',
+        error: 'Fout'
+    };
+    label.textContent = labels[status] || labels.idle;
 }
 
 /* =================================
@@ -1800,6 +1866,7 @@ function stopLocationTracking(map) {
         map.stopLocate();
         locationWatchId = null;
     }
+    shouldCenterOnNextLocation = false;
     
     // Remove only the direction arrow (no separate location marker)
     if (locationDirectionMarker !== null) {
@@ -1819,9 +1886,16 @@ function stopLocationTracking(map) {
     const stopBtn = document.querySelector('.locate-stop-btn');
     const locateBtn = document.querySelector('.locate-once-btn');
     
-    if (centerBtn) centerBtn.classList.add('hidden');
-    if (stopBtn) stopBtn.classList.add('hidden');
+    if (centerBtn) {
+        centerBtn.classList.add('hidden');
+        centerBtn.disabled = true;
+    }
+    if (stopBtn) {
+        stopBtn.classList.add('hidden');
+        stopBtn.disabled = true;
+    }
     if (locateBtn) locateBtn.classList.remove('active');
+    setLocationControlStatus('idle');
 }
 
 /* =================================
