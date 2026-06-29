@@ -1377,9 +1377,6 @@ function setupEventHandlers(map) {
         // Close edit options when opening dropdown
         if (!dropdown.classList.contains("collapsed")) {
             document.getElementById("edit-options").classList.add("collapsed");
-            
-            // Exit all edit modes and close any active popups for clean state
-            exitAllEditModes();
         }
     });
 
