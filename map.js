@@ -1800,7 +1800,7 @@ async function loadWindOverlay(map) {
         );
         state.layers.windData = expandedWindData;
 
-        const shouldShowWind = !state.layers.wind || map.hasLayer(state.layers.wind);
+        const shouldShowWind = Boolean(state.layers.wind && map.hasLayer(state.layers.wind));
 
         // Remove existing wind layer if present
         if (state.layers.wind) {
