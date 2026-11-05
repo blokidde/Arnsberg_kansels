@@ -35,6 +35,21 @@ function doAutoLogout(){
     document.dispatchEvent(new CustomEvent('userLoggedOut'));
 }
 
+// FastAPI geeft bij validatiefouten (422) een lijst terug in plaats van een tekst.
+function describeError(detail, fallback) {
+    if (typeof detail === "string" && detail) return detail;
+    if (Array.isArray(detail)) {
+        for (const issue of detail) {
+            const field = issue.loc && issue.loc[issue.loc.length - 1];
+            const min = issue.ctx && issue.ctx.min_length;
+            if (issue.type === "string_too_short" && field === "password") return `Het wachtwoord moet minstens ${min} tekens hebben.`;
+            if (issue.type === "string_too_short" && field === "username") return `De gebruikersnaam moet minstens ${min} teken(s) hebben.`;
+        }
+        return "De server accepteerde de ingevulde gegevens niet.";
+    }
+    return fallback;
+}
+
 // Event listener for DOM content loaded
 document.addEventListener("DOMContentLoaded", () => {
     // Keyboard detection for mobile UI adjustments
@@ -114,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Handle login button click
     loginBtn.addEventListener("click", async () => {
-        const username = document.getElementById("username").value;
+        const username = document.getElementById("username").value.trim();
         const password = document.getElementById("password").value;
 
         try {
@@ -132,7 +147,8 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (!response.ok) {
-                alert("Login mislukt");
+                const err = await response.json().catch(() => ({}));
+                alert("Login mislukt: " + describeError(err.detail, response.statusText));
                 return;
             }
 
@@ -155,9 +171,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Handle registration button click
     registerBtn.addEventListener("click", async () => {
-        const username = document.getElementById("reg-username").value;
+        const username = document.getElementById("reg-username").value.trim();
         const password = document.getElementById("reg-password").value;
-        const code = document.getElementById("reg-code").value;
+        const code = document.getElementById("reg-code").value.trim();
 
         try {
             // Send registration request to the server
@@ -175,8 +191,8 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (!response.ok) {
-                const err = await response.json();
-                alert("Registratie mislukt: " + (err.detail || response.statusText));
+                const err = await response.json().catch(() => ({}));
+                alert("Registratie mislukt: " + describeError(err.detail, response.statusText));
                 return;
             }
 
